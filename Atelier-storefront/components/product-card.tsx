@@ -53,8 +53,8 @@ export function ProductCard({ product }: ProductCardProps) {
           />
           <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors duration-300" />
 
-          {product.sizes && product.sizes.length > 0 && hovering && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300">
+          {product.sizes && product.sizes.length > 0 && (
+            <div className="absolute left-0 right-0 bottom-0 h-[35%] flex items-center justify-center bg-background/80 backdrop-blur-sm opacity-0 translate-y-full transition-all duration-500 ease-out group-hover:opacity-100 group-hover:translate-y-0">
               <div className="flex flex-col items-center gap-3 p-4">
                 <p className="text-xs tracking-widest uppercase text-foreground/80 mb-1">Select Size</p>
                 <div className="flex flex-wrap gap-2 justify-center">
