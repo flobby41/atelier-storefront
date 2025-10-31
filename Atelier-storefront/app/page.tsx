@@ -3,6 +3,7 @@ import { Hero } from "@/components/hero"
 import { ProductGrid } from "@/components/product-grid"
 import { Newsletter } from "@/components/newsletter"
 import { Footer } from "@/components/footer"
+import { ProductsCarousel } from "@/components/products-carousel"
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <Header />
       <Hero />
       <ProductGrid />
+      <ProductsCarousel />
       <Newsletter />
       <Footer />
     </main>
