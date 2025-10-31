@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   {product.sizes.map((size) => (
                     <Button
                       key={size}
-                      size="sm"
+                      size="sm" 
                       variant="outline"
                       className="min-w-[3rem] h-10 bg-background hover:bg-foreground hover:text-background transition-colors"
                       onClick={(e) => handleSizeClick(e, size)}
