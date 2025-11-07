@@ -35,8 +35,19 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addItem, isLoading } = useCart()
   const [hovering, setHovering] = useState(false)
 
-  // Check if product is one size (no sizes or only one size)
-  const isOneSize = !product.sizes || product.sizes.length === 0 || product.sizes.length === 1
+  // Check if product is one size
+  // A product is "one size" if:
+  // 1. No sizes array or empty array
+  // 2. Only one size option
+  // 3. No size-related options in variants (all variants have same size or no size option)
+  const hasSizeOption = product.variants?.some(v => 
+    v.selectedOptions.some(opt => opt.name.toLowerCase().includes('size'))
+  ) || false
+  
+  const isOneSize = !product.sizes || 
+                    product.sizes.length === 0 || 
+                    product.sizes.length === 1 ||
+                    !hasSizeOption
 
   // Get the first variant for one-size products
   const firstVariant = product.variants?.[0]

@@ -48,15 +48,20 @@ export function ProductDetails({ product }: { product: Product }) {
   }
 
   const handleAddToCart = async () => {
-    if (!selectedSize) {
+    // For products with sizes, require size selection
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
       alert("Please select a size")
       return
     }
     
-    // Find the variant that matches the selected size
-    const variant = product.variants?.find((v) => 
-      v.selectedOptions.some((opt) => opt.name.toLowerCase().includes('size') && opt.value === selectedSize)
-    ) || product.variants?.[0]
+    // Find the variant that matches the selected size (if size was selected)
+    let variant = product.variants?.[0] // Default to first variant
+    
+    if (selectedSize) {
+      variant = product.variants?.find((v) => 
+        v.selectedOptions.some((opt) => opt.name.toLowerCase().includes('size') && opt.value === selectedSize)
+      ) || product.variants?.[0]
+    }
     
     if (!variant) {
       alert("Variant not found. Please try again.")
@@ -69,7 +74,7 @@ export function ProductDetails({ product }: { product: Product }) {
       price: variant.price || product.price,
       image: variant.image || product.images[0],
       category: product.category,
-      size: selectedSize,
+      size: selectedSize || undefined,
     })
   }
 
@@ -111,29 +116,36 @@ export function ProductDetails({ product }: { product: Product }) {
 
         <p className="text-muted-foreground leading-relaxed mb-8 text-pretty">{product.description}</p>
 
-        {/* Size Selector */}
-        <div className="mb-8">
-          <label className="text-sm tracking-wider uppercase mb-3 block">Select Size</label>
-          <div className="flex gap-2">
-            {product.sizes.map((size) => (
-              <button
-                key={size}
-                onClick={() => setSelectedSize(size)}
-                className={`px-6 py-3 border border-border rounded transition-all ${
-                  selectedSize === size
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-transparent hover:border-foreground"
-                }`}
-              >
-                {size}
-              </button>
-            ))}
+        {/* Size Selector - Only show if product has size options */}
+        {product.sizes && product.sizes.length > 0 && (
+          <div className="mb-8">
+            <label className="text-sm tracking-wider uppercase mb-3 block">Select Size</label>
+            <div className="flex gap-2">
+              {product.sizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`px-6 py-3 border border-border rounded transition-all ${
+                    selectedSize === size
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-transparent hover:border-foreground"
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Buttons */}
         <div className="flex gap-3 mb-8">
-          <Button size="lg" className="flex-1" onClick={handleAddToCart}>
+          <Button 
+            size="lg" 
+            className="flex-1" 
+            onClick={handleAddToCart}
+            disabled={product.sizes && product.sizes.length > 0 && !selectedSize}
+          >
             <ShoppingBag className="h-5 w-5 mr-2" />
             Add to Bag
           </Button>

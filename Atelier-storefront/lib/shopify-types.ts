@@ -95,10 +95,17 @@ export function normalizeProduct(shopifyProduct: ShopifyProduct) {
   const images = shopifyProduct.images.edges.map((edge) => edge.node.url)
   const featuredImage = shopifyProduct.featuredImage?.url || images[0] || '/placeholder.svg'
   
-  // Extract sizes from options (assuming first option is usually Size)
-  const sizeOption = shopifyProduct.options.find((opt) => 
-    opt.name.toLowerCase().includes('size')
-  ) || shopifyProduct.options[0]
+  // Extract sizes from options - only look for actual size options
+  // Exclude price-related options (Price, Amount, Value, etc.)
+  const priceRelatedKeywords = ['price', 'amount', 'value', 'cost', 'dollar', '$']
+  const sizeOption = shopifyProduct.options.find((opt) => {
+    const optName = opt.name.toLowerCase()
+    // Must contain "size" and NOT contain price-related keywords
+    return optName.includes('size') && 
+           !priceRelatedKeywords.some(keyword => optName.includes(keyword))
+  })
+  
+  // Only use size option if found, otherwise empty array (one size product)
   const sizes = sizeOption?.values || []
 
   // Get price from first variant
