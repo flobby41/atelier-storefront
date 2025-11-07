@@ -12,9 +12,18 @@ interface Product {
   handle?: string
   name: string
   price: number
-  image: string
+  image?: string
+  images?: string[]
   category: string
   sizes?: string[]
+  variants?: Array<{
+    id: string
+    title: string
+    price: number
+    available: boolean
+    selectedOptions: Array<{ name: string; value: string }>
+    image: string
+  }>
 }
 
 interface ProductGridProps {
@@ -122,10 +131,13 @@ export function ProductGrid({ products }: ProductGridProps) {
                     key={product.id}
                     product={{
                       id: product.id,
+                      handle: product.handle,
                       name: product.name,
                       price: product.price,
-                      image: product.images[0],
+                      image: product.images?.[0] || '/placeholder.svg',
                       category: product.category,
+                      sizes: product.sizes,
+                      variants: product.variants,
                     }}
                   />
                 ))}

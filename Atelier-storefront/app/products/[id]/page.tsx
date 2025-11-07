@@ -6,24 +6,46 @@ import { ProductDetails } from "@/components/product-details"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { shopifyFetch } from "@/lib/shopify"
-import { PRODUCT_BY_HANDLE_QUERY, PRODUCTS_QUERY } from "@/lib/queries"
+import { PRODUCT_BY_HANDLE_QUERY, PRODUCT_BY_ID_QUERY, PRODUCTS_QUERY } from "@/lib/queries"
 import { normalizeProduct } from "@/lib/shopify-types"
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
-  // Try to fetch by handle first (Shopify uses handles for URLs)
-  let response = await shopifyFetch<{
-    product: any
-  }>({
-    query: PRODUCT_BY_HANDLE_QUERY,
-    variables: { handle: id },
-    revalidate: 60,
-  })
+  let product = null
 
-  let product = response.data?.product ? normalizeProduct(response.data.product) : null
+  // Check if id is a Shopify GID (starts with gid://)
+  const isShopifyGID = id.startsWith('gid://')
+  
+  if (isShopifyGID) {
+    // Try to fetch by ID directly
+    const idResponse = await shopifyFetch<{
+      product: any
+    }>({
+      query: PRODUCT_BY_ID_QUERY,
+      variables: { id },
+      revalidate: 60,
+    })
+    
+    if (idResponse.data?.product) {
+      product = normalizeProduct(idResponse.data.product)
+    }
+  } else {
+    // Try to fetch by handle first (Shopify uses handles for URLs)
+    const handleResponse = await shopifyFetch<{
+      product: any
+    }>({
+      query: PRODUCT_BY_HANDLE_QUERY,
+      variables: { handle: id },
+      revalidate: 60,
+    })
 
-  // If not found by handle, try to fetch all products and find by ID
+    if (handleResponse.data?.product) {
+      product = normalizeProduct(handleResponse.data.product)
+    }
+  }
+
+  // If still not found, try to fetch all products and find by ID or handle
   if (!product) {
     const productsResponse = await shopifyFetch<{
       products: {
@@ -57,7 +79,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-28">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"

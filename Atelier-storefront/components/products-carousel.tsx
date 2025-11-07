@@ -8,11 +8,21 @@ import { ProductCard } from "@/components/product-card"
 
 interface Product {
   id: string
+  handle?: string
   name: string
   price: number
-  image: string
+  image?: string
+  images?: string[]
   category: string
   sizes?: string[]
+  variants?: Array<{
+    id: string
+    title: string
+    price: number
+    available: boolean
+    selectedOptions: Array<{ name: string; value: string }>
+    image: string
+  }>
 }
 
 interface ProductsCarouselProps {
@@ -69,11 +79,13 @@ export function ProductsCarousel({ products }: ProductsCarouselProps) {
                 <ProductCard
                   product={{
                     id: p.id,
+                    handle: p.handle,
                     name: p.name,
                     price: p.price,
-                    image: p.image,
+                    image: p.image || p.images?.[0] || '/placeholder.svg',
                     category: p.category,
                     sizes: p.sizes,
+                    variants: p.variants,
                   }}
                 />
               </div>
