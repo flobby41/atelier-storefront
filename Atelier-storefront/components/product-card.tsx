@@ -9,7 +9,8 @@ import Link from "next/link"
 import { useState } from "react"
 
 interface Product {
-  id: number
+  id: string | number
+  handle?: string
   name: string
   price: number
   image: string
@@ -25,11 +26,15 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart()
   const [hovering, setHovering] = useState(false)
 
-  const handleSizeClick = (e: React.MouseEvent, size: string) => {
+  const handleSizeClick = async (e: React.MouseEvent, size: string) => {
     e.preventDefault()
     e.stopPropagation()
+    // Note: For now, we'll use the first variant. In a real app, you'd match the size to the correct variant
+    // This requires fetching the product details to get variant IDs
+    // For simplicity, we'll add a placeholder variantId - you'll need to pass the actual variantId from the product
+    const variantId = `gid://shopify/ProductVariant/${product.id}` // Placeholder - should be actual variant ID
     addItem({
-      id: product.id,
+      variantId,
       name: product.name,
       price: product.price,
       image: product.image,
@@ -44,7 +49,7 @@ export function ProductCard({ product }: ProductCardProps) {
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      <Link href={`/products/${product.id}`}>
+      <Link href={`/products/${product.handle || product.id}`}>
         <div className="relative aspect-[3/4] overflow-hidden bg-muted cursor-pointer">
           <img
             src={product.image || "/placeholder.svg"}
@@ -76,7 +81,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <Link href={`/products/${product.id}`}>
+      <Link href={`/products/${product.handle || product.id}`}>
         <div className="p-4 cursor-pointer">
           <p className="text-xs tracking-widest text-muted-foreground mb-1 uppercase">{product.category}</p>
           <h3 className="text-lg font-light tracking-wide mb-2 text-balance">{product.name}</h3>

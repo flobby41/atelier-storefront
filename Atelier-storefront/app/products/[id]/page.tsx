@@ -1,71 +1,45 @@
-"use client"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { RelatedProducts } from "@/components/related-products"
 import { ProductDetails } from "@/components/product-details"
-import { getProductById } from "@/lib/products"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
-
-// Mock product data - in a real app, this would come from a database
-const products = [
-  {
-    id: 1,
-    name: "Deconstructed Wool Blazer",
-    price: 1850,
-    category: "Outerwear",
-    description:
-      "An avant-garde interpretation of the classic blazer. Featuring asymmetric cuts, raw edges, and a draped silhouette that embodies the rebellious spirit of contemporary fashion. Crafted from premium Italian wool with an unstructured design.",
-    images: [
-      "/deconstructed-black-wool-blazer-avant-garde.jpg",
-      "/deconstructed-blazer-detail-back-view.jpg",
-      "/deconstructed-blazer-styling-editorial.jpg",
-    ],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    details: ["100% Italian Wool", "Unlined construction", "Asymmetric hem", "Raw edge detailing", "Made in Italy"],
-  },
-  {
-    id: 2,
-    name: "Draped Leather Trousers",
-    price: 2200,
-    category: "Bottoms",
-    description:
-      "Sculptural leather trousers with an exaggerated drape and low-slung waist. The fluid silhouette contrasts with the structured material, creating a striking balance between soft and hard elements.",
-    images: [
-      "/draped-black-leather-trousers-avant-garde.jpg",
-      "/leather-trousers-detail-draping.jpg",
-      "/leather-trousers-back-view.jpg",
-    ],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    details: [
-      "100% Lambskin Leather",
-      "Low-rise waist",
-      "Draped leg construction",
-      "Side zip closure",
-      "Made in France",
-    ],
-  },
-  {
-    id: 3,
-    name: "Oversized Linen Shirt",
-    price: 680,
-    category: "Tops",
-    description:
-      "Effortlessly cool oversized shirt in premium French linen. The relaxed fit and natural texture embody Parisian nonchalance with a modern edge.",
-    images: [
-      "/oversized-cream-linen-shirt-minimal.jpg",
-      "/linen-shirt-detail-texture.jpg",
-      "/oversized-shirt-styling.jpg",
-    ],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    details: ["100% French Linen", "Oversized fit", "Mother of pearl buttons", "Dropped shoulders", "Made in Portugal"],
-  },
-]
+import { shopifyFetch } from "@/lib/shopify"
+import { PRODUCT_BY_HANDLE_QUERY, PRODUCTS_QUERY } from "@/lib/queries"
+import { normalizeProduct } from "@/lib/shopify-types"
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const product = getProductById(Number.parseInt(id))
+  
+  // Try to fetch by handle first (Shopify uses handles for URLs)
+  let response = await shopifyFetch<{
+    product: any
+  }>({
+    query: PRODUCT_BY_HANDLE_QUERY,
+    variables: { handle: id },
+    revalidate: 60,
+  })
+
+  let product = response.data?.product ? normalizeProduct(response.data.product) : null
+
+  // If not found by handle, try to fetch all products and find by ID
+  if (!product) {
+    const productsResponse = await shopifyFetch<{
+      products: {
+        edges: Array<{
+          node: any
+        }>
+      }
+    }>({
+      query: PRODUCTS_QUERY,
+      variables: { first: 250 },
+      revalidate: 60,
+    })
+
+    const allProducts = productsResponse.data?.products.edges.map((edge) => normalizeProduct(edge.node)) || []
+    product = allProducts.find((p) => p.id === id || p.handle === id)
+  }
 
   if (!product) {
     return (
@@ -95,7 +69,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <ProductDetails product={product} />
 
         {/* Related Products */}
-        <RelatedProducts currentProductId={product.id} />
+        <RelatedProducts currentProductId={product.id} currentProductCategory={product.category} />
       </div>
       <Footer />
     </div>

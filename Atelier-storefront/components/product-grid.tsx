@@ -6,10 +6,23 @@ import { Button } from "@/components/ui/button"
 import { FilterPanel, type FilterState } from "@/components/filter-panel"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { SlidersHorizontal } from "lucide-react"
-import { allProducts } from "@/lib/products"
 
-export function ProductGrid() {
-  const featuredProducts = useMemo(() => allProducts.slice(0, 8), [])
+interface Product {
+  id: string
+  handle?: string
+  name: string
+  price: number
+  image: string
+  category: string
+  sizes?: string[]
+}
+
+interface ProductGridProps {
+  products: Product[]
+}
+
+export function ProductGrid({ products }: ProductGridProps) {
+  const featuredProducts = useMemo(() => products, [products])
 
   const maxPrice = Math.max(...featuredProducts.map((p) => p.price))
   const availableCategories = Array.from(new Set(featuredProducts.map((p) => p.category)))

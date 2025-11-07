@@ -7,7 +7,7 @@ import { ShoppingBag, Heart } from "lucide-react"
 import { useState } from "react"
 
 interface Product {
-  id: number
+  id: string | number
   name: string
   price: number
   category: string
@@ -15,6 +15,14 @@ interface Product {
   images: string[]
   sizes: string[]
   details: string[]
+  variants?: Array<{
+    id: string
+    title: string
+    price: number
+    available: boolean
+    selectedOptions: Array<{ name: string; value: string }>
+    image: string
+  }>
 }
 
 export function ProductDetails({ product }: { product: Product }) {
@@ -39,17 +47,29 @@ export function ProductDetails({ product }: { product: Product }) {
     }
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedSize) {
       alert("Please select a size")
       return
     }
-    addItem({
-      id: product.id,
+    
+    // Find the variant that matches the selected size
+    const variant = product.variants?.find((v) => 
+      v.selectedOptions.some((opt) => opt.name.toLowerCase().includes('size') && opt.value === selectedSize)
+    ) || product.variants?.[0]
+    
+    if (!variant) {
+      alert("Variant not found. Please try again.")
+      return
+    }
+    
+    await addItem({
+      variantId: variant.id,
       name: product.name,
-      price: product.price,
-      image: product.images[0],
+      price: variant.price || product.price,
+      image: variant.image || product.images[0],
       category: product.category,
+      size: selectedSize,
     })
   }
 

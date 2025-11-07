@@ -5,13 +5,25 @@ import { useCallback, useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductCard } from "@/components/product-card"
-import { allProducts } from "@/lib/products"
 
-export function ProductsCarousel() {
+interface Product {
+  id: string
+  name: string
+  price: number
+  image: string
+  category: string
+  sizes?: string[]
+}
+
+interface ProductsCarouselProps {
+  products: Product[]
+}
+
+export function ProductsCarousel({ products }: ProductsCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", dragFree: true })
   const [selectedIndex, setSelectedIndex] = useState(0)
 
-  const products = allProducts.slice(0, 12)
+  const displayProducts = products.slice(0, 12)
 
   const scrollPrev = useCallback(() => {
     emblaApi?.scrollPrev()
@@ -52,14 +64,14 @@ export function ProductsCarousel() {
 
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-4 pr-4">
-            {products.map((p) => (
+            {displayProducts.map((p) => (
               <div key={p.id} className="min-w-0 flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_25%]">
                 <ProductCard
                   product={{
                     id: p.id,
                     name: p.name,
                     price: p.price,
-                    image: p.images[0],
+                    image: p.image,
                     category: p.category,
                     sizes: p.sizes,
                   }}
