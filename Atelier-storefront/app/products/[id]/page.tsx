@@ -5,7 +5,7 @@ import { RelatedProducts } from "@/components/related-products"
 import { ProductDetails } from "@/components/product-details"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
-import { shopifyFetch } from "@/lib/shopify"
+import { shopifyFetch, isShopifyConfigured } from "@/lib/shopify"
 import { PRODUCT_BY_HANDLE_QUERY, PRODUCT_BY_ID_QUERY, PRODUCTS_QUERY } from "@/lib/queries"
 import { normalizeProduct } from "@/lib/shopify-types"
 import { getProductById, type Product as MockProduct } from "@/lib/products"
@@ -61,53 +61,61 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   
   let product = null
 
-  // Check if id is a Shopify GID (starts with gid://)
-  const isShopifyGID = id.startsWith('gid://')
-  
-  if (isShopifyGID) {
-    // Try to fetch by ID directly
-    const idResponse = await shopifyFetch<{
-      product: any
-    }>({
-      query: PRODUCT_BY_ID_QUERY,
-      variables: { id },
-      revalidate: 60,
-    })
-    
-    if (idResponse.data?.product) {
-      product = normalizeProduct(idResponse.data.product)
-    }
-  } else {
-    // Try to fetch by handle first (Shopify uses handles for URLs)
-    const handleResponse = await shopifyFetch<{
-      product: any
-    }>({
-      query: PRODUCT_BY_HANDLE_QUERY,
-      variables: { handle: id },
-      revalidate: 60,
-    })
+  // Try to fetch from Shopify if configured
+  if (isShopifyConfigured) {
+    try {
+      // Check if id is a Shopify GID (starts with gid://)
+      const isShopifyGID = id.startsWith('gid://')
+      
+      if (isShopifyGID) {
+        // Try to fetch by ID directly
+        const idResponse = await shopifyFetch<{
+          product: any
+        }>({
+          query: PRODUCT_BY_ID_QUERY,
+          variables: { id },
+          revalidate: 60,
+        })
+        
+        if (idResponse.data?.product) {
+          product = normalizeProduct(idResponse.data.product)
+        }
+      } else {
+        // Try to fetch by handle first (Shopify uses handles for URLs)
+        const handleResponse = await shopifyFetch<{
+          product: any
+        }>({
+          query: PRODUCT_BY_HANDLE_QUERY,
+          variables: { handle: id },
+          revalidate: 60,
+        })
 
-    if (handleResponse.data?.product) {
-      product = normalizeProduct(handleResponse.data.product)
-    }
-  }
-
-  // If still not found, try to fetch all products and find by ID or handle
-  if (!product) {
-    const productsResponse = await shopifyFetch<{
-      products: {
-        edges: Array<{
-          node: any
-        }>
+        if (handleResponse.data?.product) {
+          product = normalizeProduct(handleResponse.data.product)
+        }
       }
-    }>({
-      query: PRODUCTS_QUERY,
-      variables: { first: 250 },
-      revalidate: 60,
-    })
 
-    const allProducts = productsResponse.data?.products.edges.map((edge) => normalizeProduct(edge.node)) || []
-    product = allProducts.find((p) => p.id === id || p.handle === id)
+      // If still not found, try to fetch all products and find by ID or handle
+      if (!product) {
+        const productsResponse = await shopifyFetch<{
+          products: {
+            edges: Array<{
+              node: any
+            }>
+          }
+        }>({
+          query: PRODUCTS_QUERY,
+          variables: { first: 250 },
+          revalidate: 60,
+        })
+
+        const allProducts = productsResponse.data?.products.edges.map((edge) => normalizeProduct(edge.node)) || []
+        product = allProducts.find((p) => p.id === id || p.handle === id)
+      }
+    } catch (error) {
+      console.error('Error fetching from Shopify:', error)
+      // Continue to fallback to mock products
+    }
   }
 
   // Fallback: Try to find in mock products if not found in Shopify

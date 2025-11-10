@@ -3,11 +3,16 @@
  * Handles GraphQL requests to Shopify Storefront API
  */
 
-const SHOP_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN!
+const SHOP_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN
 const API_VERSION = process.env.SHOPIFY_STOREFRONT_API_VERSION || '2025-10'
-const TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN!
+const TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN
 
-const endpoint = `https://${SHOP_DOMAIN}/api/${API_VERSION}/graphql.json`
+// Check if Shopify is configured
+export const isShopifyConfigured = !!(SHOP_DOMAIN && TOKEN)
+
+const endpoint = SHOP_DOMAIN && TOKEN 
+  ? `https://${SHOP_DOMAIN}/api/${API_VERSION}/graphql.json`
+  : null
 
 export interface ShopifyError {
   message: string
@@ -45,12 +50,16 @@ export async function shopifyFetch<T>({
   cache?: RequestCache
   revalidate?: number
 }): Promise<ShopifyResponse<T>> {
+  if (!isShopifyConfigured || !endpoint) {
+    throw new Error('Shopify is not configured. Please set NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN and NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN environment variables.')
+  }
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': TOKEN,
+        'X-Shopify-Storefront-Access-Token': TOKEN!,
       },
       body: JSON.stringify({ query, variables }),
       cache,
@@ -86,12 +95,16 @@ export async function shopifyFetchClient<T>({
   query: string
   variables?: Record<string, any>
 }): Promise<ShopifyResponse<T>> {
+  if (!isShopifyConfigured || !endpoint) {
+    throw new Error('Shopify is not configured. Please set NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN and NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN environment variables.')
+  }
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': TOKEN,
+        'X-Shopify-Storefront-Access-Token': TOKEN!,
       },
       body: JSON.stringify({ query, variables }),
       cache: 'no-store',
