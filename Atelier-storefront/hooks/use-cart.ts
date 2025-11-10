@@ -53,6 +53,9 @@ export const useCart = create<CartStore>()(
       addItem: async (product) => {
         const { cartId, items } = get()
         
+        // Check if this is a mock product (variantId starts with "mock-")
+        const isMockProduct = product.variantId.startsWith('mock-')
+        
         // OPTIMISTIC UPDATE: Mise à jour immédiate de l'UI
         // Vérifier si le produit existe déjà dans le panier
         const existingItemIndex = items.findIndex(
@@ -72,7 +75,7 @@ export const useCart = create<CartStore>()(
           tempId = items[existingItemIndex].id
         } else {
           // Ajouter un nouvel item avec un ID temporaire
-          tempId = `temp-${Date.now()}-${Math.random()}`
+          tempId = isMockProduct ? product.variantId : `temp-${Date.now()}-${Math.random()}`
           const newItem: CartItem = {
             id: tempId,
             variantId: product.variantId,
@@ -95,11 +98,21 @@ export const useCart = create<CartStore>()(
           isCartOpen: true,
         })
 
+        // Pour les produits mockés, on ne synchronise pas avec Shopify
+        if (isMockProduct) {
+          return
+        }
+
         // Synchronisation avec Shopify en arrière-plan
         try {
           if (!cartId) {
-            // Créer le panier avec tous les items (y compris les items temporaires ajoutés rapidement)
-            const lines = newItems.map((item) => ({
+            // Créer le panier avec tous les items (exclure les produits mockés)
+            const shopifyItems = newItems.filter((item) => !item.variantId.startsWith('mock-'))
+            if (shopifyItems.length === 0) {
+              // Pas d'items Shopify, on garde juste les mockés en local
+              return
+            }
+            const lines = shopifyItems.map((item) => ({
               merchandiseId: item.variantId,
               quantity: item.quantity,
             }))
@@ -122,8 +135,8 @@ export const useCart = create<CartStore>()(
 
             const cart = normalizeCart(createResponse.data!.cartCreate.cart)
             // Mapper les items de Shopify avec les catégories et tailles des items optimistes
-            const updatedItems = cart.items.map((shopifyItem: any) => {
-              const optimisticItem = newItems.find(
+            const shopifyUpdatedItems = cart.items.map((shopifyItem: any) => {
+              const optimisticItem = shopifyItems.find(
                 (optItem) => optItem.variantId === shopifyItem.variantId
               )
               return {
@@ -138,11 +151,16 @@ export const useCart = create<CartStore>()(
               }
             })
             
+            // Préserver les produits mockés (qui ne sont pas dans Shopify)
+            const mockItems = newItems.filter((item) => item.variantId.startsWith('mock-'))
+            const finalItems = [...shopifyUpdatedItems, ...mockItems]
+            const finalTotal = calculateTotal(finalItems)
+            
             set({
               cartId: cart.id,
               checkoutUrl: cart.checkoutUrl,
-              items: updatedItems,
-              total: cart.total,
+              items: finalItems,
+              total: finalTotal,
             })
           } else {
             // Ajouter ou mettre à jour dans le panier existant

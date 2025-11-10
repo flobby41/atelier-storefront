@@ -8,6 +8,53 @@ import { Header } from "@/components/header"
 import { shopifyFetch } from "@/lib/shopify"
 import { PRODUCT_BY_HANDLE_QUERY, PRODUCT_BY_ID_QUERY, PRODUCTS_QUERY } from "@/lib/queries"
 import { normalizeProduct } from "@/lib/shopify-types"
+import { getProductById, type Product as MockProduct } from "@/lib/products"
+
+/**
+ * Convert a mock product to the format expected by ProductDetails component
+ * Creates variants based on sizes for cart functionality
+ */
+function convertMockProductToShopifyFormat(mockProduct: MockProduct) {
+  // Create variants for each size
+  const variants = mockProduct.sizes.map((size, index) => ({
+    id: `mock-${mockProduct.id}-${size}`,
+    title: `${mockProduct.name} - ${size}`,
+    price: mockProduct.price,
+    available: true,
+    selectedOptions: [
+      {
+        name: "Size",
+        value: size,
+      },
+    ],
+    image: mockProduct.images[0] || "/placeholder.svg",
+  }))
+
+  // If no sizes, create a single variant
+  if (variants.length === 0) {
+    variants.push({
+      id: `mock-${mockProduct.id}`,
+      title: mockProduct.name,
+      price: mockProduct.price,
+      available: true,
+      selectedOptions: [],
+      image: mockProduct.images[0] || "/placeholder.svg",
+    })
+  }
+
+  return {
+    id: mockProduct.id.toString(),
+    handle: mockProduct.name.toLowerCase().replace(/\s+/g, "-"),
+    name: mockProduct.name,
+    price: mockProduct.price,
+    category: mockProduct.category,
+    description: mockProduct.description,
+    images: mockProduct.images,
+    sizes: mockProduct.sizes,
+    details: mockProduct.details,
+    variants: variants,
+  }
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -61,6 +108,18 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
     const allProducts = productsResponse.data?.products.edges.map((edge) => normalizeProduct(edge.node)) || []
     product = allProducts.find((p) => p.id === id || p.handle === id)
+  }
+
+  // Fallback: Try to find in mock products if not found in Shopify
+  if (!product) {
+    const numericId = parseInt(id, 10)
+    if (!isNaN(numericId)) {
+      const mockProduct = getProductById(numericId)
+      if (mockProduct) {
+        // Convert mock product to format compatible with ProductDetails
+        product = convertMockProductToShopifyFormat(mockProduct)
+      }
+    }
   }
 
   if (!product) {
