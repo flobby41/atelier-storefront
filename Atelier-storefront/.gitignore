@@ -36,3 +36,6 @@ coverage/
 # Misc
 *.local
 .vercel
+
+# Migration data
+data/
