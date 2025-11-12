@@ -21,6 +21,7 @@ if (!SHOP_DOMAIN || !ADMIN_TOKEN) {
 }
 
 const ADMIN_API_ENDPOINT = `https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/graphql.json`
+const ADMIN_REST_API_ENDPOINT = `https://${SHOP_DOMAIN}/admin/api/${API_VERSION}`
 
 interface Product {
   id: number
@@ -86,8 +87,8 @@ async function createProductInShopify(product: Product, baseUrl?: string): Promi
 
   const validImages = images.filter((img): img is { src: string } => img !== null)
 
-  // Les prix dans products.ts sont en centimes, on les convertit en dollars
-  const priceInDollars = (product.price / 100).toFixed(2)
+  // Les prix dans products.ts sont déjà en dollars, on les convertit en string
+  const priceInDollars = product.price.toFixed(2)
 
   // Tags: category, gender, details
   const tags = [
@@ -96,7 +97,7 @@ async function createProductInShopify(product: Product, baseUrl?: string): Promi
     ...product.details,
   ].filter(Boolean)
 
-  // ÉTAPE 1: Créer le produit de base
+  // ÉTAPE 1: Créer le produit de base (sans options ni variantes)
   const createMutation = `
     mutation productCreate($input: ProductInput!) {
       productCreate(input: $input) {
@@ -172,10 +173,68 @@ async function createProductInShopify(product: Product, baseUrl?: string): Promi
       return null
     }
 
-    const productId = createdProduct.id
+    // Extraire l'ID numérique du produit depuis l'ID GraphQL (format: gid://shopify/Product/123456)
+    const productGid = createdProduct.id
+    const productIdMatch = productGid.match(/\d+$/)
+    const productIdNumeric = productIdMatch ? productIdMatch[0] : null
+
+    if (!productIdNumeric) {
+      console.error(`   ❌ Impossible d'extraire l'ID numérique du produit`)
+      return null
+    }
+
     console.log(`   ✅ Produit créé: ${createdProduct.title}`)
 
-    // ÉTAPE 2: Ajouter les images si disponibles
+    // ÉTAPE 2: Créer les variantes avec le prix via REST API
+    // Préparer les variantes selon le format REST API
+    const variants = product.sizes.length > 0
+      ? product.sizes.map((size) => ({
+          title: size,
+          price: priceInDollars,
+          option1: size,
+          sku: `${product.id}-${size}`,
+        }))
+      : [
+          {
+            title: 'Default Title',
+            price: priceInDollars,
+            sku: `${product.id}-DEFAULT`,
+          },
+        ]
+
+    try {
+      // Mettre à jour le produit avec les variantes via REST API
+      const updateResponse = await fetch(`${ADMIN_REST_API_ENDPOINT}/products/${productIdNumeric}.json`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': ADMIN_TOKEN!,
+        },
+        body: JSON.stringify({
+          product: {
+            id: parseInt(productIdNumeric),
+            variants: variants,
+          },
+        }),
+      })
+
+      if (updateResponse.ok) {
+        const updateResult = await updateResponse.json()
+        if (updateResult.errors) {
+          console.error(`   ⚠️  Erreur lors de la création des variantes:`, updateResult.errors)
+        } else {
+          const variantsCount = product.sizes.length > 0 ? product.sizes.length : 1
+          console.log(`   ✅ ${variantsCount} variante(s) créée(s) avec prix ${priceInDollars}$`)
+        }
+      } else {
+        const errorText = await updateResponse.text()
+        console.error(`   ⚠️  Erreur HTTP ${updateResponse.status} lors de la création des variantes:`, errorText)
+      }
+    } catch (err) {
+      console.error(`   ⚠️  Erreur lors de la création des variantes:`, err)
+    }
+
+    // ÉTAPE 3: Ajouter les images si disponibles
     if (validImages.length > 0) {
       for (const img of validImages) {
         const imageMutation = `
@@ -202,7 +261,7 @@ async function createProductInShopify(product: Product, baseUrl?: string): Promi
             body: JSON.stringify({
               query: imageMutation,
               variables: {
-                productId: productId,
+                productId: productGid,
                 media: [{ originalSource: img.src }],
               },
             }),
@@ -213,242 +272,7 @@ async function createProductInShopify(product: Product, baseUrl?: string): Promi
       }
     }
 
-    // ÉTAPE 3: Configurer les options et variantes
-    if (product.sizes.length > 0) {
-      // D'abord, mettre à jour le produit pour ajouter les options
-      const updateProductMutation = `
-        mutation productUpdate($input: ProductInput!) {
-          productUpdate(input: $input) {
-            product {
-              id
-              options {
-                id
-                name
-                values
-              }
-            }
-            userErrors {
-              field
-              message
-            }
-          }
-        }
-      `
-      
-      try {
-        await fetch(ADMIN_API_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Shopify-Access-Token': ADMIN_TOKEN!,
-          },
-          body: JSON.stringify({
-            query: updateProductMutation,
-            variables: {
-              input: {
-                id: productId,
-                options: [{ name: 'Size', values: product.sizes }],
-              },
-            },
-          }),
-        })
-      } catch (err) {
-        // Ignorer les erreurs
-      }
-
-      // Ensuite, récupérer les variantes existantes et créer les manquantes
-      const getVariantsQuery = `
-        query getProduct($id: ID!) {
-          product(id: $id) {
-            id
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  selectedOptions {
-                    name
-                    value
-                  }
-                }
-              }
-            }
-          }
-        }
-      `
-
-      const variantsResponse = await fetch(ADMIN_API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': ADMIN_TOKEN!,
-        },
-        body: JSON.stringify({
-          query: getVariantsQuery,
-          variables: { id: productId },
-        }),
-      })
-
-      if (variantsResponse.ok) {
-        const variantsData = await variantsResponse.json()
-        const existingVariants = variantsData.data?.product?.variants?.edges || []
-        const existingSizes = existingVariants.map((v: any) => 
-          v.node.selectedOptions.find((opt: any) => opt.name === 'Size')?.value
-        ).filter(Boolean)
-        
-        // Créer les variantes manquantes pour chaque taille
-        for (const size of product.sizes) {
-          if (!existingSizes.includes(size)) {
-            const variantMutation = `
-              mutation productVariantCreate($productId: ID!, $variant: ProductVariantInput!) {
-                productVariantCreate(productId: $productId, variant: $variant) {
-                  productVariant {
-                    id
-                  }
-                  userErrors {
-                    field
-                    message
-                  }
-                }
-              }
-            `
-            
-            try {
-              await fetch(ADMIN_API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-Shopify-Access-Token': ADMIN_TOKEN!,
-                },
-                body: JSON.stringify({
-                  query: variantMutation,
-                  variables: {
-                    productId: productId,
-                    variant: {
-                      price: priceInDollars,
-                      option1: size,
-                    },
-                  },
-                }),
-              })
-            } catch (err) {
-              // Ignorer les erreurs
-            }
-          }
-        }
-
-        // Mettre à jour le prix de toutes les variantes existantes
-        for (const variantEdge of existingVariants) {
-          const variantId = variantEdge.node.id
-          const updateVariantMutation = `
-            mutation productVariantUpdate($variant: ProductVariantInput!) {
-              productVariantUpdate(variant: $variant) {
-                productVariant {
-                  id
-                }
-                userErrors {
-                  field
-                  message
-                }
-              }
-            }
-          `
-          
-          try {
-            await fetch(ADMIN_API_ENDPOINT, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Shopify-Access-Token': ADMIN_TOKEN!,
-              },
-              body: JSON.stringify({
-                query: updateVariantMutation,
-                variables: {
-                  variant: {
-                    id: variantId,
-                    price: priceInDollars,
-                  },
-                },
-              }),
-            })
-          } catch (err) {
-            // Ignorer les erreurs
-          }
-        }
-      }
-    } else {
-      // Pas de tailles, juste mettre à jour le prix de la variante par défaut
-      const getVariantsQuery = `
-        query getProduct($id: ID!) {
-          product(id: $id) {
-            id
-            variants(first: 1) {
-              edges {
-                node {
-                  id
-                }
-              }
-            }
-          }
-        }
-      `
-
-      const variantsResponse = await fetch(ADMIN_API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': ADMIN_TOKEN!,
-        },
-        body: JSON.stringify({
-          query: getVariantsQuery,
-          variables: { id: productId },
-        }),
-      })
-
-      if (variantsResponse.ok) {
-        const variantsData = await variantsResponse.json()
-        const existingVariants = variantsData.data?.product?.variants?.edges || []
-        
-        for (const variantEdge of existingVariants) {
-          const variantId = variantEdge.node.id
-          const updateVariantMutation = `
-            mutation productVariantUpdate($variant: ProductVariantInput!) {
-              productVariantUpdate(variant: $variant) {
-                productVariant {
-                  id
-                }
-                userErrors {
-                  field
-                  message
-                }
-              }
-            }
-          `
-          
-          try {
-            await fetch(ADMIN_API_ENDPOINT, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Shopify-Access-Token': ADMIN_TOKEN!,
-              },
-              body: JSON.stringify({
-                query: updateVariantMutation,
-                variables: {
-                  variant: {
-                    id: variantId,
-                    price: priceInDollars,
-                  },
-                },
-              }),
-            })
-          } catch (err) {
-            // Ignorer les erreurs
-          }
-        }
-      }
-    }
-
-    return productId
+    return productGid
   } catch (error) {
     console.error(`   ❌ Erreur lors de la création du produit:`, error)
     return null
