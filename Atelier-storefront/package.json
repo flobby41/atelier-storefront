@@ -9,6 +9,7 @@
     "start": "next start",
     "migrate:export": "tsx scripts/export-products.ts",
     "migrate:import": "tsx scripts/import-to-shopify.ts",
+    "migrate:publish": "tsx scripts/publish-products.ts",
     "migrate": "npm run migrate:export && npm run migrate:import"
   },
   "dependencies": {

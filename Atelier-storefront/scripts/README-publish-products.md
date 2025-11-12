@@ -40,12 +40,25 @@ npm run migrate:import
 pnpm migrate:import
 ```
 
-### Exécuter les deux étapes en une fois
+### Étape 3 : Publier sur les canaux
+
+Publie les produits importés sur les 3 canaux Shopify :
+- Online Store
+- atelier-storefront
+- Atelier Storefront Token
 
 ```bash
-npm run migrate
+npm run migrate:publish
 # ou
-pnpm migrate
+pnpm migrate:publish
+```
+
+### Exécuter toutes les étapes en une fois
+
+```bash
+npm run migrate && npm run migrate:publish
+# ou
+pnpm migrate && pnpm migrate:publish
 ```
 
 ## Fonctionnalités
@@ -63,6 +76,12 @@ pnpm migrate
 - ✅ Ajoute les tags (catégorie, genre, détails)
 - ✅ Gère les erreurs et affiche un rapport détaillé
 - ✅ Sauvegarde les résultats dans `data/import-results.json`
+
+### Publication (`publish-products.ts`)
+- ✅ Récupère automatiquement les publicationIds des canaux
+- ✅ Publie les produits sur 3 canaux simultanément
+- ✅ Gère les erreurs et affiche un rapport détaillé
+- ✅ Sauvegarde les résultats dans `data/publish-results.json`
 
 ## Structure des données
 
@@ -94,6 +113,18 @@ pnpm migrate
   "success": 30,
   "failed": 0,
   "productIds": ["gid://shopify/Product/123", ...]
+}
+```
+
+### Résultats de publication
+```json
+{
+  "publishedAt": "2025-01-XX...",
+  "channels": ["Online Store", "atelier-storefront", "Atelier Storefront Token"],
+  "publicationIds": ["gid://shopify/Publication/123", ...],
+  "success": 30,
+  "failed": 0,
+  "publishedProducts": ["gid://shopify/Product/123", ...]
 }
 ```
 
