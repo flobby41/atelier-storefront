@@ -3,7 +3,7 @@
  * Usage: npx tsx scripts/import-to-shopify.ts
  */
 
-import { readFileSync, writeFileSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import * as dotenv from 'dotenv'
 
@@ -52,40 +52,57 @@ interface ShopifyResponse<T> {
 }
 
 /**
- * Préparer l'URL de l'image pour Shopify
- * Note: Pour une vraie migration, il faudrait uploader les images vers Shopify Files API
- * Pour l'instant, on utilise les URLs complètes si disponibles, sinon on laisse Shopify gérer
+ * Lire une image depuis le dossier public et la convertir en base64
+ * Retourne l'objet avec les données base64 et le nom du fichier
  */
-async function prepareImageForShopify(imageUrl: string, baseUrl?: string): Promise<string | null> {
-  // Si l'image est déjà une URL complète, on la retourne
+async function prepareImageForShopify(imageUrl: string): Promise<{ attachment: string; filename: string } | null> {
+  // Si l'image est déjà une URL complète, on ne peut pas la lire localement
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl
+    console.log(`   ⚠️  Image URL externe ignorée: ${imageUrl}`)
+    return null
   }
 
-  // Si on a une baseUrl (ex: localhost:3000), on construit l'URL complète
-  if (baseUrl) {
-    const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`
-    return `${baseUrl}${cleanPath}`
+  // Nettoyer le chemin de l'image (enlever le / initial si présent)
+  const cleanPath = imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl
+  
+  // Construire le chemin complet vers le fichier dans public
+  const imagePath = join(process.cwd(), 'public', cleanPath)
+
+  // Vérifier si le fichier existe
+  if (!existsSync(imagePath)) {
+    console.log(`   ⚠️  Fichier image introuvable: ${imagePath}`)
+    return null
   }
 
-  // Sinon, on retourne l'URL relative
-  // Shopify pourra essayer de télécharger l'image depuis cette URL
-  return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`
+  try {
+    // Lire le fichier en base64
+    const imageData = readFileSync(imagePath, { encoding: 'base64' })
+    
+    // Extraire le nom du fichier depuis le chemin
+    const filename = cleanPath.split('/').pop() || cleanPath
+
+    return {
+      attachment: imageData,
+      filename: filename,
+    }
+  } catch (error) {
+    console.error(`   ⚠️  Erreur lors de la lecture de l'image ${imagePath}:`, error)
+    return null
+  }
 }
 
 /**
  * Créer un produit dans Shopify (approche en plusieurs étapes)
  */
-async function createProductInShopify(product: Product, baseUrl?: string): Promise<string | null> {
-  // Préparer les images
+async function createProductInShopify(product: Product): Promise<string | null> {
+  // Préparer les images depuis le dossier public
   const images = await Promise.all(
     product.images.map(async (img) => {
-      const url = await prepareImageForShopify(img, baseUrl)
-      return url ? { src: url } : null
+      return await prepareImageForShopify(img)
     })
   )
 
-  const validImages = images.filter((img): img is { src: string } => img !== null)
+  const validImages = images.filter((img): img is { attachment: string; filename: string } => img !== null)
 
   // Les prix dans products.ts sont déjà en dollars, on les convertit en string
   const priceInDollars = product.price.toFixed(2)
@@ -234,41 +251,41 @@ async function createProductInShopify(product: Product, baseUrl?: string): Promi
       console.error(`   ⚠️  Erreur lors de la création des variantes:`, err)
     }
 
-    // ÉTAPE 3: Ajouter les images si disponibles
+    // ÉTAPE 3: Ajouter les images via REST API avec base64
     if (validImages.length > 0) {
+      let uploadedImagesCount = 0
       for (const img of validImages) {
-        const imageMutation = `
-          mutation productCreateMedia($productId: ID!, $media: [CreateMediaInput!]!) {
-            productCreateMedia(productId: $productId, media: $media) {
-              media {
-                id
-              }
-              mediaUserErrors {
-                field
-                message
-              }
-            }
-          }
-        `
-        
         try {
-          await fetch(ADMIN_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Shopify-Access-Token': ADMIN_TOKEN!,
-            },
-            body: JSON.stringify({
-              query: imageMutation,
-              variables: {
-                productId: productGid,
-                media: [{ originalSource: img.src }],
+          const imageResponse = await fetch(
+            `${ADMIN_REST_API_ENDPOINT}/products/${productIdNumeric}/images.json`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Shopify-Access-Token': ADMIN_TOKEN!,
               },
-            }),
-          })
+              body: JSON.stringify({
+                image: {
+                  attachment: img.attachment,
+                  filename: img.filename,
+                },
+              }),
+            }
+          )
+
+          if (imageResponse.ok) {
+            uploadedImagesCount++
+          } else {
+            const errorText = await imageResponse.text()
+            console.error(`   ⚠️  Erreur HTTP ${imageResponse.status} lors de l'upload de l'image ${img.filename}:`, errorText)
+          }
         } catch (err) {
-          console.log(`   ⚠️  Erreur lors de l'ajout de l'image: ${img.src}`)
+          console.error(`   ⚠️  Erreur lors de l'upload de l'image ${img.filename}:`, err)
         }
+      }
+      
+      if (uploadedImagesCount > 0) {
+        console.log(`   ✅ ${uploadedImagesCount}/${validImages.length} image(s) uploadée(s)`)
       }
     }
 
@@ -308,16 +325,12 @@ async function importToShopify() {
     productIds: [] as string[],
   }
 
-  // Optionnel: URL de base pour les images (ex: http://localhost:3000)
-  // Si vous avez un serveur qui sert les images, utilisez cette variable
-  const IMAGE_BASE_URL = process.env.IMAGE_BASE_URL || undefined
-
   // Importer chaque produit
   for (let i = 0; i < exportData.products.length; i++) {
     const product = exportData.products[i]
     console.log(`[${i + 1}/${exportData.totalProducts}] Import: ${product.name}...`)
 
-    const productId = await createProductInShopify(product, IMAGE_BASE_URL)
+    const productId = await createProductInShopify(product)
     
     if (productId) {
       results.success++
