@@ -9,7 +9,13 @@ import { SlidersHorizontal } from 'lucide-react'
 import { allProducts } from "@/lib/products"
 
 export function ProductGrid() {
-  const featuredProducts = useMemo(() => allProducts.slice(0, 8), [])
+  const featuredProducts = useMemo(() => {
+    // Mix of unisex, women, and men products
+    const unisexProducts = allProducts.filter((p) => p.gender === "unisex" || !p.gender).slice(0, 4)
+    const womenProducts = allProducts.filter((p) => p.gender === "women").slice(0, 2)
+    const menProducts = allProducts.filter((p) => p.gender === "men").slice(0, 4)
+    return [...unisexProducts, ...womenProducts, ...menProducts]
+  }, [])
 
   const maxPrice = Math.max(...featuredProducts.map((p) => p.price))
   const availableCategories = Array.from(new Set(featuredProducts.map((p) => p.category)))
@@ -17,7 +23,7 @@ export function ProductGrid() {
   const availableColors = useMemo(() => {
     const colorsMap = new Map<string, string>()
     featuredProducts.forEach((p) => {
-      p.colors.forEach((color) => {
+      p.colors?.forEach((color) => {
         colorsMap.set(color.name, color.hex)
       })
     })
@@ -129,8 +135,8 @@ export function ProductGrid() {
                       price: product.price,
                       image: product.images[0],
                       category: product.category,
+                      sizes: product.sizes,
                     }}
-                    sizes={product.sizes}
                   />
                 ))}
               </div>

@@ -496,48 +496,6 @@ export const allProducts: Product[] = [
       { name: "Charcoal", hex: "#36454F" },
     ],
   },
-  {
-    id: 31,
-    name: "Longline Cardigan",
-    price: 680,
-    category: "Outerwear",
-    gender: "men",
-    description:
-      "Minimal longline cardigan with a flowing silhouette. The extended length and soft drape create elegant layering.",
-    images: [
-      "/longline-cardigan-men-minimal.jpg",
-      "/longline-cardigan-men-minimal.jpg",
-      "/longline-cardigan-men-minimal.jpg",
-    ],
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    details: ["Merino Wool", "Longline cut", "Open front", "Side pockets", "Made in Scotland"],
-    colors: [
-      { name: "Black", hex: "#000000" },
-      { name: "Grey", hex: "#808080" },
-      { name: "Camel", hex: "#C19A6B" },
-    ],
-  },
-  {
-    id: 32,
-    name: "Structured Vest",
-    price: 490,
-    category: "Outerwear",
-    gender: "men",
-    description:
-      "Tailored structured vest with clean lines. The refined cut and premium fabric create sophisticated layering.",
-    images: [
-      "/structured-vest-men-tailored.jpg",
-      "/structured-vest-men-tailored.jpg",
-      "/structured-vest-men-tailored.jpg",
-    ],
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    details: ["Wool Blend", "Structured fit", "V-neck", "Button closure", "Made in Italy"],
-    colors: [
-      { name: "Black", hex: "#000000" },
-      { name: "Charcoal", hex: "#36454F" },
-      { name: "Navy", hex: "#1A1A2E" },
-    ],
-  },
 ]
 
 export function getProductById(id: number): Product | undefined {

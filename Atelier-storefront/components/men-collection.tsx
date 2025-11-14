@@ -73,7 +73,7 @@ export function MenCollection() {
   }, [menProducts, filters])
 
   return (
-    <section className="py-20 lg:py-32 bg-background">
+    <section className="pb-20 lg:pb-32 bg-background">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12 gap-6">
           <div>

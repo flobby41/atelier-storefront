@@ -77,9 +77,9 @@ export function FilterPanel({
     (filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice ? 1 : 0)
 
   return (
-    <div className="w-full h-full bg-background">
+    <div className="w-full h-full bg-background flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-border/40">
+      <div className="flex items-center justify-between p-6 border-b border-border/40 flex-shrink-0">
         <div>
           <h3 className="text-lg font-light tracking-wider">Filters</h3>
           {activeFiltersCount > 0 && (
@@ -102,7 +102,7 @@ export function FilterPanel({
         </div>
       </div>
 
-      <div className="p-6 space-y-8 overflow-y-auto">
+      <div className="p-6 space-y-8 overflow-y-auto flex-1 min-h-0">
         {/* Sort */}
         <div className="space-y-3">
           <Label className="text-sm font-light tracking-wider">Sort By</Label>
