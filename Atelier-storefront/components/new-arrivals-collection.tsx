@@ -5,42 +5,40 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { FilterPanel, type FilterState } from "@/components/filter-panel"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { SlidersHorizontal } from "lucide-react"
+import { SlidersHorizontal } from 'lucide-react'
+import { allProducts } from "@/lib/products"
 
-interface Product {
-  id: string | number
-  handle?: string
-  name: string
-  price: number
-  category: string
-  images: string[]
-  sizes: string[]
-  details?: string[]
-  variants?: Array<{
-    id: string
-    title: string
-    price: number
-    available: boolean
-    selectedOptions: Array<{ name: string; value: string }>
-    image: string
-  }>
-}
+export function NewArrivalsCollection() {
+  const newArrivalsProducts = useMemo(() => {
+    // Get the newest products from each gender category
+    const womenProducts = allProducts.filter((p) => p.gender === "women").slice(-6)
+    const menProducts = allProducts.filter((p) => p.gender === "men").slice(-6)
+    const unisexProducts = allProducts.filter((p) => p.gender === "unisex")
 
-interface NewArrivalsCollectionProps {
-  products: Product[]
-}
+    // Combine and sort by ID descending to show newest first
+    return [...womenProducts, ...menProducts, ...unisexProducts].sort((a, b) => b.id - a.id).slice(0, 12)
+  }, [])
 
-export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArrivalsCollectionProps) {
-
-  const maxPrice = newArrivalsProducts.length > 0 ? Math.max(...newArrivalsProducts.map((p) => p.price)) : 0
+  const maxPrice = Math.max(...newArrivalsProducts.map((p) => p.price))
   const availableCategories = Array.from(new Set(newArrivalsProducts.map((p) => p.category)))
-  const availableSizes = Array.from(new Set(newArrivalsProducts.flatMap((p) => p.sizes || [])))
+  const availableSizes = Array.from(new Set(newArrivalsProducts.flatMap((p) => p.sizes)))
+  
+  const availableColors = useMemo(() => {
+    const colorsMap = new Map<string, string>()
+    newArrivalsProducts.forEach((p) => {
+      p.colors?.forEach((color) => {
+        colorsMap.set(color.name, color.hex)
+      })
+    })
+    return Array.from(colorsMap.entries()).map(([name, hex]) => ({ name, hex }))
+  }, [newArrivalsProducts])
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     priceRange: [0, maxPrice],
     sizes: [],
     sortBy: "newest",
+    colors: [], // Add colors to filter state
   })
 
   const filteredProducts = useMemo(() => {
@@ -56,7 +54,11 @@ export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArri
 
     // Filter by size
     if (filters.sizes.length > 0) {
-      result = result.filter((p) => (p.sizes || []).some((size) => filters.sizes.includes(size)))
+      result = result.filter((p) => p.sizes.some((size) => filters.sizes.includes(size)))
+    }
+
+    if (filters.colors.length > 0) {
+      result = result.filter((p) => p.colors?.some((color) => filters.colors.includes(color.name)))
     }
 
     // Sort
@@ -68,8 +70,7 @@ export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArri
         result.sort((a, b) => b.price - a.price)
         break
       case "newest":
-        // For Shopify products, we can't sort by ID easily, so keep original order
-        // result.sort((a, b) => b.id - a.id)
+        result.sort((a, b) => b.id - a.id)
         break
       default:
         // featured - keep original order
@@ -104,6 +105,7 @@ export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArri
                 availableCategories={availableCategories}
                 availableSizes={availableSizes}
                 maxPrice={maxPrice}
+                availableColors={availableColors}
               />
             </SheetContent>
           </Sheet>
@@ -118,6 +120,7 @@ export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArri
                 availableCategories={availableCategories}
                 availableSizes={availableSizes}
                 maxPrice={maxPrice}
+                availableColors={availableColors}
               />
             </div>
           </aside>
@@ -131,13 +134,11 @@ export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArri
                     key={product.id}
                     product={{
                       id: product.id,
-                      handle: product.handle,
                       name: product.name,
                       price: product.price,
                       image: product.images[0],
                       category: product.category,
                       sizes: product.sizes,
-                      variants: product.variants,
                     }}
                   />
                 ))}
@@ -153,6 +154,7 @@ export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArri
                       priceRange: [0, maxPrice],
                       sizes: [],
                       sortBy: "newest",
+                      colors: [],
                     })
                   }
                   className="mt-4"

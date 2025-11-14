@@ -4,13 +4,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { X } from "lucide-react"
+import { X } from 'lucide-react'
 
 export interface FilterState {
   categories: string[]
   priceRange: [number, number]
   sizes: string[]
   sortBy: string
+  colors: string[]
 }
 
 interface FilterPanelProps {
@@ -20,6 +21,7 @@ interface FilterPanelProps {
   availableSizes: string[]
   maxPrice: number
   onClose?: () => void
+  availableColors?: { name: string; hex: string }[]
 }
 
 export function FilterPanel({
@@ -29,6 +31,7 @@ export function FilterPanel({
   availableSizes,
   maxPrice,
   onClose,
+  availableColors = [],
 }: FilterPanelProps) {
   const handleCategoryToggle = (category: string) => {
     const newCategories = filters.categories.includes(category)
@@ -50,18 +53,27 @@ export function FilterPanel({
     onFiltersChange({ ...filters, sortBy: value })
   }
 
+  const handleColorToggle = (colorName: string) => {
+    const newColors = filters.colors.includes(colorName)
+      ? filters.colors.filter((c) => c !== colorName)
+      : [...filters.colors, colorName]
+    onFiltersChange({ ...filters, colors: newColors })
+  }
+
   const handleReset = () => {
     onFiltersChange({
       categories: [],
       priceRange: [0, maxPrice],
       sizes: [],
       sortBy: "featured",
+      colors: [],
     })
   }
 
   const activeFiltersCount =
     filters.categories.length +
     filters.sizes.length +
+    filters.colors.length +
     (filters.priceRange[0] !== 0 || filters.priceRange[1] !== maxPrice ? 1 : 0)
 
   return (
@@ -165,6 +177,35 @@ export function FilterPanel({
             ))}
           </div>
         </div>
+
+        {/* Colors */}
+        {availableColors.length > 0 && (
+          <div className="space-y-3">
+            <Label className="text-sm font-light tracking-wider">Color</Label>
+            <div className="grid grid-cols-4 gap-2">
+              {availableColors.map((color) => (
+                <button
+                  key={color.name}
+                  onClick={() => handleColorToggle(color.name)}
+                  className={`relative aspect-square rounded-full border-2 transition-all hover:scale-110 ${
+                    filters.colors.includes(color.name)
+                      ? "border-primary ring-2 ring-primary ring-offset-2"
+                      : "border-border"
+                  }`}
+                  style={{ backgroundColor: color.hex }}
+                  title={color.name}
+                >
+                  <span className="sr-only">{color.name}</span>
+                  {filters.colors.includes(color.name) && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white shadow-lg" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

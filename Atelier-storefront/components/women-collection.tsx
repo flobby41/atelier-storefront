@@ -5,42 +5,32 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { FilterPanel, type FilterState } from "@/components/filter-panel"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { SlidersHorizontal } from "lucide-react"
+import { SlidersHorizontal } from 'lucide-react'
+import { allProducts } from "@/lib/products"
 
-interface Product {
-  id: string | number
-  handle?: string
-  name: string
-  price: number
-  category: string
-  images: string[]
-  sizes: string[]
-  details?: string[]
-  variants?: Array<{
-    id: string
-    title: string
-    price: number
-    available: boolean
-    selectedOptions: Array<{ name: string; value: string }>
-    image: string
-  }>
-}
+export function WomenCollection() {
+  const womenProducts = useMemo(() => allProducts.filter((p) => p.gender === "women"), [])
 
-interface WomenCollectionProps {
-  products: Product[]
-}
-
-export function WomenCollection({ products: womenProducts }: WomenCollectionProps) {
-
-  const maxPrice = womenProducts.length > 0 ? Math.max(...womenProducts.map((p) => p.price)) : 0
+  const maxPrice = Math.max(...womenProducts.map((p) => p.price))
   const availableCategories = Array.from(new Set(womenProducts.map((p) => p.category)))
-  const availableSizes = Array.from(new Set(womenProducts.flatMap((p) => p.sizes || [])))
+  const availableSizes = Array.from(new Set(womenProducts.flatMap((p) => p.sizes)))
+  
+  const availableColors = useMemo(() => {
+    const colorsMap = new Map<string, string>()
+    womenProducts.forEach((p) => {
+      p.colors?.forEach((color) => {
+        colorsMap.set(color.name, color.hex)
+      })
+    })
+    return Array.from(colorsMap.entries()).map(([name, hex]) => ({ name, hex }))
+  }, [womenProducts])
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     priceRange: [0, maxPrice],
     sizes: [],
     sortBy: "featured",
+    colors: [], // Add colors to filter state
   })
 
   const filteredProducts = useMemo(() => {
@@ -56,7 +46,11 @@ export function WomenCollection({ products: womenProducts }: WomenCollectionProp
 
     // Filter by size
     if (filters.sizes.length > 0) {
-      result = result.filter((p) => (p.sizes || []).some((size) => filters.sizes.includes(size)))
+      result = result.filter((p) => p.sizes.some((size) => filters.sizes.includes(size)))
+    }
+
+    if (filters.colors.length > 0) {
+      result = result.filter((p) => p.colors?.some((color) => filters.colors.includes(color.name)))
     }
 
     // Sort
@@ -68,8 +62,7 @@ export function WomenCollection({ products: womenProducts }: WomenCollectionProp
         result.sort((a, b) => b.price - a.price)
         break
       case "newest":
-        // For Shopify products, we can't sort by ID easily, so keep original order
-        // result.sort((a, b) => b.id - a.id)
+        result.sort((a, b) => b.id - a.id)
         break
       default:
         // featured - keep original order
@@ -104,6 +97,7 @@ export function WomenCollection({ products: womenProducts }: WomenCollectionProp
                 availableCategories={availableCategories}
                 availableSizes={availableSizes}
                 maxPrice={maxPrice}
+                availableColors={availableColors}
               />
             </SheetContent>
           </Sheet>
@@ -118,6 +112,7 @@ export function WomenCollection({ products: womenProducts }: WomenCollectionProp
                 availableCategories={availableCategories}
                 availableSizes={availableSizes}
                 maxPrice={maxPrice}
+                availableColors={availableColors}
               />
             </div>
           </aside>
@@ -131,13 +126,11 @@ export function WomenCollection({ products: womenProducts }: WomenCollectionProp
                     key={product.id}
                     product={{
                       id: product.id,
-                      handle: product.handle,
                       name: product.name,
                       price: product.price,
                       image: product.images[0],
                       category: product.category,
                       sizes: product.sizes,
-                      variants: product.variants,
                     }}
                   />
                 ))}
@@ -153,6 +146,7 @@ export function WomenCollection({ products: womenProducts }: WomenCollectionProp
                       priceRange: [0, maxPrice],
                       sizes: [],
                       sortBy: "featured",
+                      colors: [],
                     })
                   }
                   className="mt-4"

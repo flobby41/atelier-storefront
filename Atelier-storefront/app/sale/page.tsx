@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer"
 import { Newsletter } from "@/components/newsletter"
 import { ProductCard } from "@/components/product-card"
 import { allProducts } from "@/lib/products"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 
 export default function SalePage() {
   // Filter products that are on sale (you can add a sale property to products later)
@@ -22,9 +23,13 @@ export default function SalePage() {
               </p>
             </div>
 
+            <div className="mb-8">
+              <Breadcrumbs items={[{ label: "Sale" }]} />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {saleProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} sizes={product.sizes} />
               ))}
             </div>
           </div>

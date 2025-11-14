@@ -8,6 +8,7 @@ export interface Product {
   images: string[]
   sizes: string[]
   details: string[]
+  colors?: { name: string; hex: string }[]
 }
 
 export const allProducts: Product[] = [
@@ -27,6 +28,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% Italian Wool", "Unlined construction", "Asymmetric hem", "Raw edge detailing", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Charcoal", hex: "#36454F" },
+      { name: "Navy", hex: "#1A1A2E" },
+    ],
   },
   {
     id: 2,
@@ -49,6 +55,10 @@ export const allProducts: Product[] = [
       "Side zip closure",
       "Made in France",
     ],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Brown", hex: "#5C4033" },
+    ],
   },
   {
     id: 3,
@@ -65,6 +75,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% French Linen", "Oversized fit", "Mother of pearl buttons", "Dropped shoulders", "Made in Portugal"],
+    colors: [
+      { name: "Cream", hex: "#F5F5DC" },
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Sand", hex: "#C2B280" },
+    ],
   },
   // Women's products
   {
@@ -76,12 +91,17 @@ export const allProducts: Product[] = [
     description:
       "Luxurious oversized cashmere coat with a relaxed silhouette. The soft, enveloping shape creates an effortless elegance while the premium cashmere provides unparalleled warmth and comfort.",
     images: [
-      "/luxurious-oversized-cashmere-coat-beige.jpg",
-      "/luxurious-oversized-cashmere-coat-beige.jpg",
-      "/luxurious-oversized-cashmere-coat-beige.jpg",
+      "/oversized-cashmere-coat-front-view-beige.jpg",
+      "/oversized-cashmere-coat-back-view-beige.jpg",
+      "/oversized-cashmere-coat-detail-texture-beige.jpg",
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% Cashmere", "Oversized fit", "Notched lapels", "Side pockets", "Made in Scotland"],
+    colors: [
+      { name: "Beige", hex: "#E8DCC4" },
+      { name: "Camel", hex: "#C19A6B" },
+      { name: "Grey", hex: "#808080" },
+    ],
   },
   {
     id: 6,
@@ -92,12 +112,17 @@ export const allProducts: Product[] = [
     description:
       "Elegant pleated midi skirt with a fluid drape. The fine pleating creates beautiful movement while maintaining a refined silhouette.",
     images: [
-      "/elegant-pleated-midi-skirt-fashion-photography.jpg",
-      "/elegant-pleated-midi-skirt-fashion-photography.jpg",
-      "/elegant-pleated-midi-skirt-fashion-photography.jpg",
+      "/pleated-midi-skirt-front-view.jpg",
+      "/pleated-midi-skirt-side-movement.jpg",
+      "/pleated-midi-skirt-detail-pleats.jpg",
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% Silk", "Pleated construction", "Elastic waistband", "Midi length", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Ivory", hex: "#FFFFF0" },
+      { name: "Burgundy", hex: "#800020" },
+    ],
   },
   {
     id: 7,
@@ -108,12 +133,16 @@ export const allProducts: Product[] = [
     description:
       "Architectural knit dress with a sculptural silhouette. The innovative construction creates dimension and movement, blending comfort with avant-garde design.",
     images: [
-      "/architectural-knit-dress-avant-garde-fashion.jpg",
-      "/architectural-knit-dress-avant-garde-fashion.jpg",
-      "/architectural-knit-dress-avant-garde-fashion.jpg",
+      "/sculptural-knit-dress-front-view.jpg",
+      "/sculptural-knit-dress-side-angle.jpg",
+      "/sculptural-knit-dress-detail-knit.jpg",
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["Merino Wool Blend", "Sculptural construction", "Fitted silhouette", "Midi length", "Made in Japan"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Charcoal", hex: "#36454F" },
+    ],
   },
   {
     id: 9,
@@ -124,12 +153,17 @@ export const allProducts: Product[] = [
     description:
       "Minimalist silk slip dress with delicate straps and a bias cut. The luxurious fabric drapes beautifully, creating an effortlessly elegant silhouette.",
     images: [
-      "/elegant-silk-slip-dress-minimal-fashion.jpg",
-      "/elegant-silk-slip-dress-minimal-fashion.jpg",
-      "/elegant-silk-slip-dress-minimal-fashion.jpg",
+      "/silk-slip-dress-front-view.jpg",
+      "/silk-slip-dress-back-detail.jpg",
+      "/silk-slip-dress-fabric-drape.jpg",
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% Silk Charmeuse", "Bias cut", "Adjustable straps", "Midi length", "Made in France"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Champagne", hex: "#F7E7CE" },
+      { name: "Sage", hex: "#9CAF88" },
+    ],
   },
   {
     id: 10,
@@ -140,12 +174,17 @@ export const allProducts: Product[] = [
     description:
       "Oversized tailored blazer in premium wool. The relaxed fit and clean lines create a modern take on classic tailoring.",
     images: [
-      "/oversized-tailored-wool-blazer-women-fashion.jpg",
-      "/oversized-tailored-wool-blazer-women-fashion.jpg",
-      "/oversized-tailored-wool-blazer-women-fashion.jpg",
+      "/tailored-wool-blazer-front-view-women.jpg",
+      "/tailored-wool-blazer-back-view-women.jpg",
+      "/tailored-wool-blazer-detail-lapel-women.jpg",
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% Virgin Wool", "Oversized fit", "Notched lapels", "Single button closure", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Navy", hex: "#1A1A2E" },
+      { name: "Cream", hex: "#F5F5DC" },
+    ],
   },
   {
     id: 11,
@@ -162,6 +201,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["Cotton Blend", "Asymmetric hem", "Relaxed fit", "Long sleeves", "Made in Portugal"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Ecru", hex: "#C2B280" },
+      { name: "Grey", hex: "#808080" },
+    ],
   },
   {
     id: 12,
@@ -178,6 +222,10 @@ export const allProducts: Product[] = [
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% Lambskin Leather", "High-rise waist", "Slim fit", "Side zip closure", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Brown", hex: "#5C4033" },
+    ],
   },
   {
     id: 13,
@@ -188,12 +236,17 @@ export const allProducts: Product[] = [
     description:
       "Elegant draped jersey dress with a fluid silhouette. The soft fabric and artful draping create effortless sophistication.",
     images: [
-      "/draped-jersey-dress-minimal-elegant.jpg",
-      "/draped-jersey-dress-minimal-elegant.jpg",
-      "/draped-jersey-dress-minimal-elegant.jpg",
+      "/draped-jersey-dress-elegant.jpg",
+      "/draped-jersey-dress-elegant.jpg",
+      "/draped-jersey-dress-elegant.jpg",
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["Viscose Jersey", "Draped construction", "Relaxed fit", "Midi length", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Olive", hex: "#556B2F" },
+      { name: "Terracotta", hex: "#E2725B" },
+    ],
   },
   {
     id: 14,
@@ -210,6 +263,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["Wool Boucle", "Cropped length", "Collarless design", "Hook closure", "Made in France"],
+    colors: [
+      { name: "Cream", hex: "#F5F5DC" },
+      { name: "Navy", hex: "#1A1A2E" },
+      { name: "Pink", hex: "#FFB6C1" },
+    ],
   },
   {
     id: 15,
@@ -226,6 +284,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
     details: ["100% European Linen", "Wide-leg fit", "High-rise waist", "Side pockets", "Made in Portugal"],
+    colors: [
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Beige", hex: "#E8DCC4" },
+      { name: "Black", hex: "#000000" },
+    ],
   },
   // Men's products
   {
@@ -237,12 +300,17 @@ export const allProducts: Product[] = [
     description:
       "Dramatic oversized wool coat with an enveloping silhouette. The voluminous shape and premium wool create a powerful, avant-garde statement.",
     images: [
-      "/oversized-black-wool-coat-men-fashion.jpg",
-      "/oversized-black-wool-coat-men-fashion.jpg",
-      "/oversized-black-wool-coat-men-fashion.jpg",
+      "/oversized-wool-coat-front-view-men.jpg",
+      "/oversized-wool-coat-back-view-men.jpg",
+      "/oversized-wool-coat-detail-lapel-men.jpg",
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["100% Virgin Wool", "Oversized fit", "Notched lapels", "Double-breasted", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Charcoal", hex: "#36454F" },
+      { name: "Camel", hex: "#C19A6B" },
+    ],
   },
   {
     id: 22,
@@ -253,12 +321,16 @@ export const allProducts: Product[] = [
     description:
       "Avant-garde deconstructed blazer with raw edges and asymmetric details. The unstructured design challenges traditional tailoring conventions.",
     images: [
-      "/deconstructed-blazer-men-avant-garde.jpg",
-      "/deconstructed-blazer-men-avant-garde.jpg",
-      "/deconstructed-blazer-men-avant-garde.jpg",
+      "/deconstructed-blazer-front-view-men.jpg",
+      "/deconstructed-blazer-back-raw-edges-men.jpg",
+      "/deconstructed-blazer-detail-construction-men.jpg",
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["Wool Blend", "Unstructured", "Raw edge details", "Asymmetric cut", "Made in Japan"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Grey", hex: "#808080" },
+    ],
   },
   {
     id: 23,
@@ -269,12 +341,16 @@ export const allProducts: Product[] = [
     description:
       "Edgy asymmetric leather jacket with an off-center zip and draped collar. The sculptural design creates a bold, rebellious aesthetic.",
     images: [
-      "/asymmetric-leather-jacket-men-edgy.jpg",
-      "/asymmetric-leather-jacket-men-edgy.jpg",
-      "/asymmetric-leather-jacket-men-edgy.jpg",
+      "/asymmetric-leather-jacket-front-view-men.jpg",
+      "/asymmetric-leather-jacket-side-zip-men.jpg",
+      "/asymmetric-leather-jacket-detail-collar-men.jpg",
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["100% Lambskin Leather", "Asymmetric zip", "Draped collar", "Slim fit", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Brown", hex: "#5C4033" },
+    ],
   },
   {
     id: 24,
@@ -285,12 +361,17 @@ export const allProducts: Product[] = [
     description:
       "Minimal draped shirt in premium cotton. The fluid draping and clean lines create effortless sophistication.",
     images: [
-      "/draped-cotton-shirt-men-minimal.jpg",
-      "/draped-cotton-shirt-men-minimal.jpg",
-      "/draped-cotton-shirt-men-minimal.jpg",
+      "/draped-cotton-shirt-front-view-men.jpg",
+      "/draped-cotton-shirt-side-drape-men.jpg",
+      "/draped-cotton-shirt-detail-fabric-men.jpg",
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["100% Cotton", "Draped construction", "Relaxed fit", "Button closure", "Made in Portugal"],
+    colors: [
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Black", hex: "#000000" },
+      { name: "Grey", hex: "#808080" },
+    ],
   },
   {
     id: 25,
@@ -301,12 +382,17 @@ export const allProducts: Product[] = [
     description:
       "Cozy oversized knit sweater with a relaxed silhouette. The chunky knit and soft texture create comfortable luxury.",
     images: [
-      "/oversized-knit-sweater-men-cozy.jpg",
-      "/oversized-knit-sweater-men-cozy.jpg",
-      "/oversized-knit-sweater-men-cozy.jpg",
+      "/oversized-knit-sweater-front-view-men.jpg",
+      "/oversized-knit-sweater-side-texture-men.jpg",
+      "/oversized-knit-sweater-detail-knit-men.jpg",
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["Merino Wool", "Oversized fit", "Ribbed cuffs", "Crew neck", "Made in Scotland"],
+    colors: [
+      { name: "Charcoal", hex: "#36454F" },
+      { name: "Cream", hex: "#F5F5DC" },
+      { name: "Navy", hex: "#1A1A2E" },
+    ],
   },
   {
     id: 26,
@@ -322,6 +408,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["100% Cotton", "Asymmetric hem", "Relaxed fit", "Crew neck", "Made in Portugal"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Grey", hex: "#808080" },
+    ],
   },
   {
     id: 27,
@@ -338,6 +429,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["Wool Blend", "Wide-leg fit", "Pleated front", "Side pockets", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Grey", hex: "#808080" },
+      { name: "Navy", hex: "#1A1A2E" },
+    ],
   },
   {
     id: 28,
@@ -354,6 +450,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["Cotton Twill", "Multiple pockets", "Relaxed fit", "Drawstring waist", "Made in Japan"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Olive", hex: "#556B2F" },
+      { name: "Khaki", hex: "#C3B091" },
+    ],
   },
   {
     id: 29,
@@ -370,6 +471,10 @@ export const allProducts: Product[] = [
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["100% Lambskin Leather", "Slim fit", "Zip fly", "Side pockets", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Brown", hex: "#5C4033" },
+    ],
   },
   {
     id: 30,
@@ -386,6 +491,10 @@ export const allProducts: Product[] = [
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["Cotton Blend", "Drop crotch", "Tapered leg", "Elastic waist", "Made in Japan"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Charcoal", hex: "#36454F" },
+    ],
   },
   {
     id: 31,
@@ -402,6 +511,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["Merino Wool", "Longline cut", "Open front", "Side pockets", "Made in Scotland"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Grey", hex: "#808080" },
+      { name: "Camel", hex: "#C19A6B" },
+    ],
   },
   {
     id: 32,
@@ -418,6 +532,11 @@ export const allProducts: Product[] = [
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
     details: ["Wool Blend", "Structured fit", "V-neck", "Button closure", "Made in Italy"],
+    colors: [
+      { name: "Black", hex: "#000000" },
+      { name: "Charcoal", hex: "#36454F" },
+      { name: "Navy", hex: "#1A1A2E" },
+    ],
   },
 ]
 

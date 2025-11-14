@@ -5,43 +5,31 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { FilterPanel, type FilterState } from "@/components/filter-panel"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { SlidersHorizontal } from "lucide-react"
+import { SlidersHorizontal } from 'lucide-react'
+import { allProducts } from "@/lib/products"
 
-interface Product {
-  id: string
-  handle?: string
-  name: string
-  price: number
-  image?: string
-  images?: string[]
-  category: string
-  sizes?: string[]
-  variants?: Array<{
-    id: string
-    title: string
-    price: number
-    available: boolean
-    selectedOptions: Array<{ name: string; value: string }>
-    image: string
-  }>
-}
-
-interface ProductGridProps {
-  products: Product[]
-}
-
-export function ProductGrid({ products }: ProductGridProps) {
-  const featuredProducts = useMemo(() => products, [products])
+export function ProductGrid() {
+  const featuredProducts = useMemo(() => allProducts.slice(0, 8), [])
 
   const maxPrice = Math.max(...featuredProducts.map((p) => p.price))
   const availableCategories = Array.from(new Set(featuredProducts.map((p) => p.category)))
   const availableSizes = Array.from(new Set(featuredProducts.flatMap((p) => p.sizes)))
+  const availableColors = useMemo(() => {
+    const colorsMap = new Map<string, string>()
+    featuredProducts.forEach((p) => {
+      p.colors.forEach((color) => {
+        colorsMap.set(color.name, color.hex)
+      })
+    })
+    return Array.from(colorsMap.entries()).map(([name, hex]) => ({ name, hex }))
+  }, [featuredProducts])
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     priceRange: [0, maxPrice],
     sizes: [],
     sortBy: "featured",
+    colors: [],
   })
 
   const filteredProducts = useMemo(() => {
@@ -58,6 +46,10 @@ export function ProductGrid({ products }: ProductGridProps) {
     // Filter by size
     if (filters.sizes.length > 0) {
       result = result.filter((p) => p.sizes.some((size) => filters.sizes.includes(size)))
+    }
+
+    if (filters.colors.length > 0) {
+      result = result.filter((p) => p.colors.some((color) => filters.colors.includes(color.name)))
     }
 
     // Sort
@@ -104,6 +96,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 availableCategories={availableCategories}
                 availableSizes={availableSizes}
                 maxPrice={maxPrice}
+                availableColors={availableColors}
               />
             </SheetContent>
           </Sheet>
@@ -118,6 +111,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 availableCategories={availableCategories}
                 availableSizes={availableSizes}
                 maxPrice={maxPrice}
+                availableColors={availableColors}
               />
             </div>
           </aside>
@@ -131,14 +125,12 @@ export function ProductGrid({ products }: ProductGridProps) {
                     key={product.id}
                     product={{
                       id: product.id,
-                      handle: product.handle,
                       name: product.name,
                       price: product.price,
-                      image: product.images?.[0] || '/placeholder.svg',
+                      image: product.images[0],
                       category: product.category,
-                      sizes: product.sizes,
-                      variants: product.variants,
                     }}
+                    sizes={product.sizes}
                   />
                 ))}
               </div>
@@ -153,6 +145,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                       priceRange: [0, maxPrice],
                       sizes: [],
                       sortBy: "featured",
+                      colors: [],
                     })
                   }
                   className="mt-4"

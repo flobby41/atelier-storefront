@@ -1,6 +1,7 @@
 import { Header } from "@/components/header"
 import { Newsletter } from "@/components/newsletter"
 import { Footer } from "@/components/footer"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 
 export default function AboutPage() {
   return (
@@ -19,6 +20,11 @@ export default function AboutPage() {
           <h1 className="text-5xl lg:text-7xl font-light tracking-widest mb-4 text-balance">About Atelier</h1>
         </div>
       </section>
+
+      {/* Breadcrumbs Section */}
+      <div className="container mx-auto px-4 lg:px-8 pt-8">
+        <Breadcrumbs items={[{ label: "About" }]} />
+      </div>
 
       {/* Story Section */}
       <section className="py-16 lg:py-24">

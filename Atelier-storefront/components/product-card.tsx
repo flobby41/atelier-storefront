@@ -7,24 +7,14 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/hooks/use-cart"
 import Link from "next/link"
 import { useState } from "react"
-import { ShoppingBag } from "lucide-react"
 
 interface Product {
-  id: string | number
-  handle?: string
+  id: number
   name: string
   price: number
   image: string
   category: string
   sizes?: string[]
-  variants?: Array<{
-    id: string
-    title: string
-    price: number
-    available: boolean
-    selectedOptions: Array<{ name: string; value: string }>
-    image: string
-  }>
 }
 
 interface ProductCardProps {
@@ -32,78 +22,20 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addItem, isLoading } = useCart()
+  const { addItem } = useCart()
   const [hovering, setHovering] = useState(false)
 
-  // Check if product is one size
-  // A product is "one size" if:
-  // 1. No sizes array or empty array
-  // 2. Only one size option
-  // 3. No size-related options in variants (all variants have same size or no size option)
-  const hasSizeOption = product.variants?.some(v => 
-    v.selectedOptions.some(opt => opt.name.toLowerCase().includes('size'))
-  ) || false
-  
-  const isOneSize = !product.sizes || 
-                    product.sizes.length === 0 || 
-                    product.sizes.length === 1 ||
-                    !hasSizeOption
-
-  // Get the first variant for one-size products
-  const firstVariant = product.variants?.[0]
-
-  const handleSizeClick = async (e: React.MouseEvent, size: string) => {
+  const handleSizeClick = (e: React.MouseEvent, size: string) => {
     e.preventDefault()
     e.stopPropagation()
-    // Find variant matching the size
-    const variant = product.variants?.find((v) => 
-      v.selectedOptions.some((opt) => 
-        opt.name.toLowerCase().includes('size') && opt.value === size
-      )
-    ) || product.variants?.[0]
-    
-    if (!variant) {
-      alert("Variant not found. Please try again.")
-      return
-    }
-
-    await addItem({
-      variantId: variant.id,
+    addItem({
+      id: product.id,
       name: product.name,
-      price: variant.price || product.price,
-      image: variant.image || product.image,
+      price: product.price,
+      image: product.image,
       category: product.category,
       size: size,
     })
-  }
-
-  const handleOneSizeAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (!firstVariant) {
-      alert("Product variant not available")
-      return
-    }
-
-    await addItem({
-      variantId: firstVariant.id,
-      name: product.name,
-      price: firstVariant.price || product.price,
-      image: firstVariant.image || product.image,
-      category: product.category,
-    })
-  }
-
-  // Get product URL - always prefer handle for SEO-friendly URLs
-  const getProductUrl = () => {
-    // Always use handle if available (recommended for SEO)
-    if (product.handle) {
-      return `/products/${product.handle}`
-    }
-    // Fallback to ID if handle is not available
-    // Note: This should rarely happen as normalizeProduct always includes handle
-    return `/products/${product.id}`
   }
 
   return (
@@ -112,7 +44,7 @@ export function ProductCard({ product }: ProductCardProps) {
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      <Link href={getProductUrl()}>
+      <Link href={`/products/${product.id}`}>
         <div className="relative aspect-[3/4] overflow-hidden bg-muted cursor-pointer">
           <img
             src={product.image || "/placeholder.svg"}
@@ -121,33 +53,22 @@ export function ProductCard({ product }: ProductCardProps) {
           />
           <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors duration-300" />
 
-          {/* One Size - Show cart button on hover */}
-          {isOneSize && (
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Button
-                size="lg"
-                className="bg-background/95 hover:bg-background text-foreground shadow-lg"
-                onClick={handleOneSizeAddToCart}
-                disabled={isLoading}
-              >
-                <ShoppingBag className="h-5 w-5 mr-2" />
-                Add to Cart
-              </Button>
-            </div>
-          )}
-
-          {/* Multiple Sizes - Show size selector on hover */}
-          {!isOneSize && product.sizes && product.sizes.length > 0 && (
-            <div className="absolute left-0 right-0 bottom-0 h-[35%] flex items-center justify-center bg-background/80 backdrop-blur-sm opacity-0 translate-y-full transition-all duration-500 ease-out group-hover:opacity-100 group-hover:translate-y-0">
-              <div className="flex flex-col items-center gap-3 p-4">
-                <p className="text-xs tracking-widest uppercase text-foreground/80 mb-1">Select Size</p>
-                <div className="flex flex-wrap gap-2 justify-center">
+          {product.sizes && product.sizes.length > 0 && (
+            <div
+              className={`absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm transition-all duration-500 ease-out ${
+                hovering ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+              }`}
+              style={{ height: "12.5%" }}
+            >
+              <div className="h-full flex items-center justify-center gap-2 px-4">
+                <p className="text-[10px] tracking-widest uppercase text-foreground/70 mr-1 whitespace-nowrap">Size:</p>
+                <div className="flex gap-1.5">
                   {product.sizes.map((size) => (
                     <Button
                       key={size}
-                      size="sm" 
+                      size="sm"
                       variant="outline"
-                      className="min-w-[3rem] h-10 bg-background hover:bg-foreground hover:text-background transition-colors"
+                      className="h-7 min-w-[2.5rem] px-2 text-xs bg-background hover:bg-foreground hover:text-background transition-colors border-border/50"
                       onClick={(e) => handleSizeClick(e, size)}
                     >
                       {size}
@@ -160,7 +81,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <Link href={getProductUrl()}>
+      <Link href={`/products/${product.id}`}>
         <div className="p-4 cursor-pointer">
           <p className="text-xs tracking-widest text-muted-foreground mb-1 uppercase">{product.category}</p>
           <h3 className="text-lg font-light tracking-wide mb-2 text-balance">{product.name}</h3>

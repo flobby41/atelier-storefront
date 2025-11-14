@@ -13,7 +13,7 @@ interface CartSheetProps {
 }
 
 export function CartSheet({ open, onOpenChange }: CartSheetProps) {
-  const { items, removeItem, updateQuantity, total, checkoutUrl, isLoading } = useCart()
+  const { items, removeItem, updateQuantity, total } = useCart()
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -32,7 +32,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
             <ScrollArea className="h-[calc(100vh-250px)] pr-4 mt-8">
               <div className="space-y-6">
                 {items.map((item) => (
-                  <div key={item.id} className="flex gap-4">
+                  <div key={`${item.id}-${item.size || "no-size"}`} className="flex gap-4">
                     <div className="relative w-24 h-32 bg-muted rounded overflow-hidden flex-shrink-0">
                       <img
                         src={item.image || "/placeholder.svg"}
@@ -49,7 +49,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 -mt-1"
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeItem(item.id, item.size)}
                           >
                             <X className="h-4 w-4" />
                             <span className="sr-only">Remove</span>
@@ -65,7 +65,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
                             variant="outline"
                             size="icon"
                             className="h-7 w-7 bg-transparent"
-                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1), item.size)}
                           >
                             <Minus className="h-3 w-3" />
                             <span className="sr-only">Decrease</span>
@@ -75,7 +75,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
                             variant="outline"
                             size="icon"
                             className="h-7 w-7 bg-transparent"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
                           >
                             <Plus className="h-3 w-3" />
                             <span className="sr-only">Increase</span>
@@ -94,24 +94,11 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
                 <span className="text-sm tracking-wider uppercase">Total</span>
                 <span className="text-xl font-mono">${total.toLocaleString()}</span>
               </div>
-              {checkoutUrl ? (
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={() => {
-                    window.location.href = checkoutUrl
-                  }}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Loading...' : 'Checkout'}
+              <Link href="/checkout" onClick={() => onOpenChange(false)}>
+                <Button className="w-full" size="lg">
+                  Checkout
                 </Button>
-              ) : (
-                <Link href="/checkout" onClick={() => onOpenChange(false)}>
-                  <Button className="w-full" size="lg" disabled={isLoading}>
-                    {isLoading ? 'Loading...' : 'Checkout'}
-                  </Button>
-                </Link>
-              )}
+              </Link>
             </div>
           </>
         )}

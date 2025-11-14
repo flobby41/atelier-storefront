@@ -16,17 +16,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Demo Store | ATELIER ",
+  title: "ATELIER — Contemporary Fashion",
   description: "Avant-garde fashion inspired by Isabel Marant, Rick Owens, and Vivienne Westwood",
   generator: "v0.app",
-  icons: {
-    icon: [
-      { url: "/logo.png" },
-    ],
-    apple: [
-      { url: "/logo.png" },
-    ],
-  },
 }
 
 export default function RootLayout({
