@@ -6,22 +6,35 @@ import { Button } from "@/components/ui/button"
 import { FilterPanel, type FilterState } from "@/components/filter-panel"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { SlidersHorizontal } from "lucide-react"
-import { allProducts } from "@/lib/products"
 
-export function NewArrivalsCollection() {
-  const newArrivalsProducts = useMemo(() => {
-    // Get the newest products from each gender category
-    const womenProducts = allProducts.filter((p) => p.gender === "women").slice(-6)
-    const menProducts = allProducts.filter((p) => p.gender === "men").slice(-6)
-    const unisexProducts = allProducts.filter((p) => p.gender === "unisex")
+interface Product {
+  id: string | number
+  handle?: string
+  name: string
+  price: number
+  category: string
+  images: string[]
+  sizes: string[]
+  details?: string[]
+  variants?: Array<{
+    id: string
+    title: string
+    price: number
+    available: boolean
+    selectedOptions: Array<{ name: string; value: string }>
+    image: string
+  }>
+}
 
-    // Combine and sort by ID descending to show newest first
-    return [...womenProducts, ...menProducts, ...unisexProducts].sort((a, b) => b.id - a.id).slice(0, 12)
-  }, [])
+interface NewArrivalsCollectionProps {
+  products: Product[]
+}
 
-  const maxPrice = Math.max(...newArrivalsProducts.map((p) => p.price))
+export function NewArrivalsCollection({ products: newArrivalsProducts }: NewArrivalsCollectionProps) {
+
+  const maxPrice = newArrivalsProducts.length > 0 ? Math.max(...newArrivalsProducts.map((p) => p.price)) : 0
   const availableCategories = Array.from(new Set(newArrivalsProducts.map((p) => p.category)))
-  const availableSizes = Array.from(new Set(newArrivalsProducts.flatMap((p) => p.sizes)))
+  const availableSizes = Array.from(new Set(newArrivalsProducts.flatMap((p) => p.sizes || [])))
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
@@ -43,7 +56,7 @@ export function NewArrivalsCollection() {
 
     // Filter by size
     if (filters.sizes.length > 0) {
-      result = result.filter((p) => p.sizes.some((size) => filters.sizes.includes(size)))
+      result = result.filter((p) => (p.sizes || []).some((size) => filters.sizes.includes(size)))
     }
 
     // Sort
@@ -55,7 +68,8 @@ export function NewArrivalsCollection() {
         result.sort((a, b) => b.price - a.price)
         break
       case "newest":
-        result.sort((a, b) => b.id - a.id)
+        // For Shopify products, we can't sort by ID easily, so keep original order
+        // result.sort((a, b) => b.id - a.id)
         break
       default:
         // featured - keep original order
@@ -117,11 +131,13 @@ export function NewArrivalsCollection() {
                     key={product.id}
                     product={{
                       id: product.id,
+                      handle: product.handle,
                       name: product.name,
                       price: product.price,
                       image: product.images[0],
                       category: product.category,
                       sizes: product.sizes,
+                      variants: product.variants,
                     }}
                   />
                 ))}
