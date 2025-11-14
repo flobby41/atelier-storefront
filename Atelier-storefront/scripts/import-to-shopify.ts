@@ -220,7 +220,30 @@ async function createProductInShopify(product: Product): Promise<string | null> 
         ]
 
     try {
-      // Mettre à jour le produit avec les variantes via REST API
+      // Préparer les options du produit
+      // NOTE: Actuellement, tous les produits n'ont que des variantes de taille (sizes)
+      // Si vous ajoutez d'autres types de variantes (couleur, matériau, etc.) à l'avenir,
+      // vous devrez :
+      // 1. Ajouter les champs dans l'interface Product (ex: colors: string[])
+      // 2. Adapter cette partie pour créer plusieurs options :
+      //    const productOptions = []
+      //    if (product.sizes.length > 0) {
+      //      productOptions.push({ name: 'Size', values: product.sizes })
+      //    }
+      //    if (product.colors?.length > 0) {
+      //      productOptions.push({ name: 'Color', values: product.colors })
+      //    }
+      // 3. Adapter la création des variants pour gérer option1, option2, etc.
+      const productOptions = product.sizes.length > 0
+        ? [
+            {
+              name: 'Size',
+              values: product.sizes,
+            },
+          ]
+        : []
+
+      // Mettre à jour le produit avec les variantes et options via REST API
       const updateResponse = await fetch(`${ADMIN_REST_API_ENDPOINT}/products/${productIdNumeric}.json`, {
         method: 'PUT',
         headers: {
@@ -230,6 +253,7 @@ async function createProductInShopify(product: Product): Promise<string | null> 
         body: JSON.stringify({
           product: {
             id: parseInt(productIdNumeric),
+            options: productOptions,
             variants: variants,
           },
         }),
