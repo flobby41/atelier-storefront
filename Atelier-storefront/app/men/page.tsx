@@ -2,8 +2,65 @@ import { Header } from "@/components/header"
 import { MenCollection } from "@/components/men-collection"
 import { Newsletter } from "@/components/newsletter"
 import { Footer } from "@/components/footer"
+import { shopifyFetch, isShopifyConfigured } from "@/lib/shopify"
+import { PRODUCTS_QUERY } from "@/lib/queries"
+import { normalizeProduct } from "@/lib/shopify-types"
+import { allProducts } from "@/lib/products"
 
-export default function MenPage() {
+export default async function MenPage() {
+  let products: any[] = []
+
+  // Try to fetch from Shopify if configured
+  if (isShopifyConfigured) {
+    try {
+      const response = await shopifyFetch<{
+        products: {
+          edges: Array<{
+            node: any
+          }>
+        }
+      }>({
+        query: PRODUCTS_QUERY,
+        variables: { first: 250 },
+        revalidate: 60, // Revalidate every 60 seconds
+      })
+
+      const allShopifyProducts = response.data?.products.edges.map((edge) => normalizeProduct(edge.node)) || []
+      
+      // Filter products with "men" tag
+      products = allShopifyProducts.filter((product) => 
+        product.details?.some((tag: string) => tag.toLowerCase() === "men")
+      )
+    } catch (error) {
+      console.error('Error fetching from Shopify, falling back to mock products:', error)
+    }
+  }
+
+  // Fallback to mock products if Shopify is not configured or fetch failed
+  if (products.length === 0) {
+    products = allProducts
+      .filter((p) => p.gender === "men")
+      .map((product) => ({
+        id: product.id.toString(),
+        handle: product.name.toLowerCase().replace(/\s+/g, "-"),
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        description: product.description,
+        images: product.images,
+        sizes: product.sizes,
+        details: product.details,
+        variants: product.sizes.map((size) => ({
+          id: `mock-${product.id}-${size}`,
+          title: `${product.name} - ${size}`,
+          price: product.price,
+          available: true,
+          selectedOptions: [{ name: "Size", value: size }],
+          image: product.images[0] || "/placeholder.svg",
+        })),
+      }))
+  }
+
   return (
     <main className="min-h-screen">
       <Header />
@@ -24,7 +81,7 @@ export default function MenPage() {
         </div>
       </section>
 
-      <MenCollection />
+      <MenCollection products={products} />
       <Newsletter />
       <Footer />
     </main>

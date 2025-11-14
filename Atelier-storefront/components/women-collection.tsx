@@ -6,14 +6,35 @@ import { Button } from "@/components/ui/button"
 import { FilterPanel, type FilterState } from "@/components/filter-panel"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { SlidersHorizontal } from "lucide-react"
-import { allProducts } from "@/lib/products"
 
-export function WomenCollection() {
-  const womenProducts = useMemo(() => allProducts.filter((p) => p.gender === "women"), [])
+interface Product {
+  id: string | number
+  handle?: string
+  name: string
+  price: number
+  category: string
+  images: string[]
+  sizes: string[]
+  details?: string[]
+  variants?: Array<{
+    id: string
+    title: string
+    price: number
+    available: boolean
+    selectedOptions: Array<{ name: string; value: string }>
+    image: string
+  }>
+}
 
-  const maxPrice = Math.max(...womenProducts.map((p) => p.price))
+interface WomenCollectionProps {
+  products: Product[]
+}
+
+export function WomenCollection({ products: womenProducts }: WomenCollectionProps) {
+
+  const maxPrice = womenProducts.length > 0 ? Math.max(...womenProducts.map((p) => p.price)) : 0
   const availableCategories = Array.from(new Set(womenProducts.map((p) => p.category)))
-  const availableSizes = Array.from(new Set(womenProducts.flatMap((p) => p.sizes)))
+  const availableSizes = Array.from(new Set(womenProducts.flatMap((p) => p.sizes || [])))
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
@@ -35,7 +56,7 @@ export function WomenCollection() {
 
     // Filter by size
     if (filters.sizes.length > 0) {
-      result = result.filter((p) => p.sizes.some((size) => filters.sizes.includes(size)))
+      result = result.filter((p) => (p.sizes || []).some((size) => filters.sizes.includes(size)))
     }
 
     // Sort
@@ -47,7 +68,8 @@ export function WomenCollection() {
         result.sort((a, b) => b.price - a.price)
         break
       case "newest":
-        result.sort((a, b) => b.id - a.id)
+        // For Shopify products, we can't sort by ID easily, so keep original order
+        // result.sort((a, b) => b.id - a.id)
         break
       default:
         // featured - keep original order
@@ -109,11 +131,13 @@ export function WomenCollection() {
                     key={product.id}
                     product={{
                       id: product.id,
+                      handle: product.handle,
                       name: product.name,
                       price: product.price,
                       image: product.images[0],
                       category: product.category,
                       sizes: product.sizes,
+                      variants: product.variants,
                     }}
                   />
                 ))}
