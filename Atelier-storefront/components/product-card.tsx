@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/hooks/use-cart"
 import Link from "next/link"
-import { useState } from "react"
 
 interface Product {
   id: number
@@ -23,7 +22,6 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart()
-  const [hovering, setHovering] = useState(false)
 
   const handleSizeClick = (e: React.MouseEvent, size: string) => {
     e.preventDefault()
@@ -38,12 +36,10 @@ export function ProductCard({ product }: ProductCardProps) {
     })
   }
 
+  const isOneSize = product.sizes && product.sizes.length === 1
+
   return (
-    <Card
-      className="group overflow-hidden border-border bg-card hover:shadow-lg transition-all duration-300"
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-    >
+    <Card className="group overflow-hidden border-border bg-card hover:shadow-lg transition-all duration-300">
       <Link href={`/products/${product.id}`}>
         <div className="relative aspect-[3/4] overflow-hidden bg-muted cursor-pointer">
           <img
@@ -53,22 +49,18 @@ export function ProductCard({ product }: ProductCardProps) {
           />
           <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors duration-300" />
 
-          {product.sizes && product.sizes.length > 0 && (
-            <div
-              className={`absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm transition-all duration-500 ease-out ${
-                hovering ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
-              }`}
-              style={{ height: "12.5%" }}
-            >
-              <div className="h-full flex items-center justify-center gap-2 px-4">
-                <p className="text-[10px] tracking-widest uppercase text-foreground/70 mr-1 whitespace-nowrap">Size:</p>
-                <div className="flex gap-1.5">
+          {/* Multiple Sizes - Show size selector on hover */}
+          {!isOneSize && product.sizes && product.sizes.length > 0 && (
+            <div className="absolute left-0 right-0 bottom-0 h-[35%] flex items-center justify-center bg-background/80 backdrop-blur-sm opacity-0 translate-y-full transition-all duration-500 ease-out group-hover:opacity-100 group-hover:translate-y-0">
+              <div className="flex flex-col items-center gap-3 p-4">
+                <p className="text-xs tracking-widest uppercase text-foreground/80 mb-1">Select Size</p>
+                <div className="flex flex-wrap gap-2 justify-center">
                   {product.sizes.map((size) => (
                     <Button
                       key={size}
                       size="sm"
                       variant="outline"
-                      className="h-7 min-w-[2.5rem] px-2 text-xs bg-background hover:bg-foreground hover:text-background transition-colors border-border/50"
+                      className="min-w-[3rem] h-10 bg-background hover:bg-foreground hover:text-background transition-colors"
                       onClick={(e) => handleSizeClick(e, size)}
                     >
                       {size}
