@@ -202,7 +202,7 @@ async function createProductInShopify(product: Product): Promise<string | null> 
 
     console.log(`   ✅ Produit créé: ${createdProduct.title}`)
 
-    // ÉTAPE 2: Créer les variantes avec le prix via REST API
+    // ÉTAPE 2: Créer les variantes avec le prix via REST API test
     // Préparer les variantes selon le format REST API
     const variants = product.sizes.length > 0
       ? product.sizes.map((size) => ({
