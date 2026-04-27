@@ -3,6 +3,8 @@ import { requireAdminAuth } from '@/lib/admin-auth'
 import { shopifyAdminFetch } from '@/lib/shopify-admin'
 import { GET_PRODUCTS_QUERY, GET_PRODUCT_QUERY } from '@/lib/admin-queries'
 
+type AdminProductResponse = Record<string, unknown>
+
 export async function GET(request: NextRequest) {
   try {
     await requireAdminAuth()
@@ -14,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     if (productId) {
       // Fetch a specific product
-      const response = await shopifyAdminFetch({
+      const response = await shopifyAdminFetch<AdminProductResponse>({
         query: GET_PRODUCT_QUERY,
         variables: { id: productId },
       })
@@ -23,18 +25,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch products list
-    const response = await shopifyAdminFetch({
+    const response = await shopifyAdminFetch<Record<string, unknown>>({
       query: GET_PRODUCTS_QUERY,
       variables: { first, after },
     })
 
     return NextResponse.json(response.data)
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const message =
+      error instanceof Error && error.message ? error.message : 'Error fetching products'
     return NextResponse.json(
-      { error: error.message || 'Error fetching products' },
+      { error: message },
       { status: 500 }
     )
   }
