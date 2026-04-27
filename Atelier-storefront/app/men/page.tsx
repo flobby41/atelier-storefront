@@ -4,11 +4,12 @@ import { Newsletter } from "@/components/newsletter"
 import { Footer } from "@/components/footer"
 import { shopifyFetch, isShopifyConfigured } from "@/lib/shopify"
 import { PRODUCTS_QUERY } from "@/lib/queries"
-import { normalizeProduct } from "@/lib/shopify-types"
+import { normalizeProduct, type ShopifyProduct } from "@/lib/shopify-types"
 import { allProducts } from "@/lib/products"
 
 export default async function MenPage() {
-  let products: any[] = []
+  type NormalizedProduct = ReturnType<typeof normalizeProduct>
+  let products: NormalizedProduct[] = []
 
   // Try to fetch from Shopify if configured
   if (isShopifyConfigured) {
@@ -16,7 +17,7 @@ export default async function MenPage() {
       const response = await shopifyFetch<{
         products: {
           edges: Array<{
-            node: any
+            node: ShopifyProduct
           }>
         }
       }>({
@@ -29,7 +30,7 @@ export default async function MenPage() {
       
       // Filter products with "men" tag
       products = allShopifyProducts.filter((product) => 
-        product.details?.some((tag: string) => tag.toLowerCase() === "men")
+        product.details?.some((tag) => tag.toLowerCase() === "men")
       )
     } catch (error) {
       console.error('Error fetching from Shopify, falling back to mock products:', error)
@@ -47,6 +48,7 @@ export default async function MenPage() {
         price: product.price,
         category: product.category,
         description: product.description,
+        descriptionHtml: product.description,
         images: product.images,
         sizes: product.sizes,
         details: product.details,

@@ -4,11 +4,12 @@ import { Newsletter } from "@/components/newsletter"
 import { Footer } from "@/components/footer"
 import { shopifyFetch, isShopifyConfigured } from "@/lib/shopify"
 import { PRODUCTS_QUERY } from "@/lib/queries"
-import { normalizeProduct } from "@/lib/shopify-types"
+import { normalizeProduct, type ShopifyProduct } from "@/lib/shopify-types"
 import { allProducts } from "@/lib/products"
 
 export default async function NewArrivalsPage() {
-  let products: any[] = []
+  type NormalizedProduct = ReturnType<typeof normalizeProduct>
+  let products: NormalizedProduct[] = []
 
   // Try to fetch from Shopify if configured
   if (isShopifyConfigured) {
@@ -16,7 +17,7 @@ export default async function NewArrivalsPage() {
       const response = await shopifyFetch<{
         products: {
           edges: Array<{
-            node: any
+            node: ShopifyProduct
           }>
         }
       }>({
@@ -30,7 +31,7 @@ export default async function NewArrivalsPage() {
       // For new arrivals, we can filter by "new-arrivals" tag or take the most recent products
       // First try to filter by "new-arrivals" tag
       let newArrivals = allShopifyProducts.filter((product) => 
-        product.details?.some((tag: string) => tag.toLowerCase() === "new-arrivals" || tag.toLowerCase() === "new arrivals")
+        product.details?.some((tag) => tag.toLowerCase() === "new-arrivals" || tag.toLowerCase() === "new arrivals")
       )
       
       // If no products with "new-arrivals" tag, take the first 12 products (most recent)
@@ -60,6 +61,7 @@ export default async function NewArrivalsPage() {
         price: product.price,
         category: product.category,
         description: product.description,
+        descriptionHtml: product.description,
         images: product.images,
         sizes: product.sizes,
         details: product.details,

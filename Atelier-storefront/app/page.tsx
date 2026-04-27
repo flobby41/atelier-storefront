@@ -6,11 +6,12 @@ import { Footer } from "@/components/footer"
 import { ProductsCarousel } from "@/components/products-carousel"
 import { shopifyFetch, isShopifyConfigured } from "@/lib/shopify"
 import { PRODUCTS_QUERY } from "@/lib/queries"
-import { normalizeProduct } from "@/lib/shopify-types"
+import { normalizeProduct, type ShopifyProduct } from "@/lib/shopify-types"
 import { allProducts } from "@/lib/products"
 
 export default async function Home() {
-  let products: any[] = []
+  type NormalizedProduct = ReturnType<typeof normalizeProduct>
+  let products: NormalizedProduct[] = []
 
   // Try to fetch from Shopify if configured
   if (isShopifyConfigured) {
@@ -18,7 +19,7 @@ export default async function Home() {
       const response = await shopifyFetch<{
         products: {
           edges: Array<{
-            node: any
+            node: ShopifyProduct
           }>
         }
       }>({
@@ -42,6 +43,7 @@ export default async function Home() {
       price: product.price,
       category: product.category,
       description: product.description,
+      descriptionHtml: product.description,
       images: product.images,
       sizes: product.sizes,
       details: product.details,
