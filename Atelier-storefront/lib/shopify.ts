@@ -46,7 +46,7 @@ export async function shopifyFetch<T>({
   revalidate,
 }: {
   query: string
-  variables?: Record<string, any>
+  variables?: Record<string, unknown>
   cache?: RequestCache
   revalidate?: number
 }): Promise<ShopifyResponse<T>> {
@@ -93,7 +93,7 @@ export async function shopifyFetchClient<T>({
   variables,
 }: {
   query: string
-  variables?: Record<string, any>
+  variables?: Record<string, unknown>
 }): Promise<ShopifyResponse<T>> {
   if (!isShopifyConfigured || !endpoint) {
     throw new Error('Shopify is not configured. Please set NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN and NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN environment variables.')

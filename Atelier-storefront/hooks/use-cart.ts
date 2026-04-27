@@ -4,7 +4,11 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { shopifyFetchClient } from "@/lib/shopify"
 import { CART_CREATE_MUTATION, CART_LINES_ADD_MUTATION, CART_LINES_UPDATE_MUTATION, CART_LINES_REMOVE_MUTATION } from "@/lib/queries"
-import { normalizeCart } from "@/lib/shopify-types"
+import { normalizeCart, type ShopifyCart } from "@/lib/shopify-types"
+
+type ShopifyUserError = { field: string[]; message: string }
+type NormalizedCart = ReturnType<typeof normalizeCart>
+type NormalizedCartItem = NormalizedCart["items"][number]
 
 interface CartItem {
   id: string // Shopify cart line ID
@@ -119,8 +123,8 @@ export const useCart = create<CartStore>()(
             
             const createResponse = await shopifyFetchClient<{
               cartCreate: {
-                cart: any
-                userErrors: Array<{ field: string[]; message: string }>
+                cart: ShopifyCart
+                userErrors: ShopifyUserError[]
               }
             }>({
               query: CART_CREATE_MUTATION,
@@ -135,7 +139,7 @@ export const useCart = create<CartStore>()(
 
             const cart = normalizeCart(createResponse.data!.cartCreate.cart)
             // Mapper les items de Shopify avec les catégories et tailles des items optimistes
-            const shopifyUpdatedItems = cart.items.map((shopifyItem: any) => {
+            const shopifyUpdatedItems = cart.items.map((shopifyItem: NormalizedCartItem) => {
               const optimisticItem = shopifyItems.find(
                 (optItem) => optItem.variantId === shopifyItem.variantId
               )
@@ -169,8 +173,8 @@ export const useCart = create<CartStore>()(
               const updatedItem = newItems[existingItemIndex]
               const updateResponse = await shopifyFetchClient<{
                 cartLinesUpdate: {
-                  cart: any
-                  userErrors: Array<{ field: string[]; message: string }>
+                  cart: ShopifyCart
+                  userErrors: ShopifyUserError[]
                 }
               }>({
                 query: CART_LINES_UPDATE_MUTATION,
@@ -206,8 +210,8 @@ export const useCart = create<CartStore>()(
               // Ajouter un nouvel item
               const addResponse = await shopifyFetchClient<{
                 cartLinesAdd: {
-                  cart: any
-                  userErrors: Array<{ field: string[]; message: string }>
+                  cart: ShopifyCart
+                  userErrors: ShopifyUserError[]
                 }
               }>({
                 query: CART_LINES_ADD_MUTATION,
@@ -227,13 +231,13 @@ export const useCart = create<CartStore>()(
               const cart = normalizeCart(addResponse.data!.cartLinesAdd.cart)
               // Remplacer l'item temporaire par l'item réel de Shopify
               const realItem = cart.items.find(
-                (item: any) => item.variantId === product.variantId
+                (item) => item.variantId === product.variantId
               )
               
               if (realItem) {
                 set({
                   checkoutUrl: cart.checkoutUrl,
-                  items: cart.items.map((item: any) => ({
+                  items: cart.items.map((item) => ({
                     id: item.id,
                     variantId: item.variantId,
                     name: item.name,
@@ -287,8 +291,8 @@ export const useCart = create<CartStore>()(
         try {
           const removeResponse = await shopifyFetchClient<{
             cartLinesRemove: {
-              cart: any
-              userErrors: Array<{ field: string[]; message: string }>
+              cart: ShopifyCart
+              userErrors: ShopifyUserError[]
             }
           }>({
             query: CART_LINES_REMOVE_MUTATION,
@@ -363,8 +367,8 @@ export const useCart = create<CartStore>()(
           try {
             const updateResponse = await shopifyFetchClient<{
               cartLinesUpdate: {
-                cart: any
-                userErrors: Array<{ field: string[]; message: string }>
+                cart: ShopifyCart
+                userErrors: ShopifyUserError[]
               }
             }>({
               query: CART_LINES_UPDATE_MUTATION,

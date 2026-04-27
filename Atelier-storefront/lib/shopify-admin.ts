@@ -48,7 +48,7 @@ export async function shopifyAdminFetch<T>({
   variables,
 }: {
   query: string
-  variables?: Record<string, any>
+  variables?: Record<string, unknown>
 }): Promise<ShopifyResponse<T>> {
   if (!isShopifyAdminConfigured || !endpoint) {
     throw new Error('Shopify Admin API is not configured. Please set NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN and SHOPIFY_ADMIN_API_TOKEN environment variables.')
@@ -94,7 +94,7 @@ export async function shopifyAdminRestFetch<T>({
 }: {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   path: string
-  body?: any
+  body?: unknown
 }): Promise<T> {
   if (!isShopifyAdminConfigured || !restEndpoint) {
     throw new Error('Shopify Admin API is not configured.')
