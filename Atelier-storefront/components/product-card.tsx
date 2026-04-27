@@ -14,7 +14,7 @@ interface Product {
   handle?: string
   name: string
   price: number
-  image: string
+  image?: string
   category: string
   sizes?: string[]
   variants?: Array<{
@@ -23,7 +23,7 @@ interface Product {
     price: number
     available: boolean
     selectedOptions: Array<{ name: string; value: string }>
-    image: string
+    image?: string
   }>
 }
 
@@ -71,7 +71,7 @@ export function ProductCard({ product }: ProductCardProps) {
       variantId: variant.id,
       name: product.name,
       price: variant.price || product.price,
-      image: variant.image || product.image,
+      image: (variant.image || product.image) as string,
       category: product.category,
       size: size,
     })
@@ -90,7 +90,7 @@ export function ProductCard({ product }: ProductCardProps) {
       variantId: firstVariant.id,
       name: product.name,
       price: firstVariant.price || product.price,
-      image: firstVariant.image || product.image,
+      image: (firstVariant.image || product.image) as string,
       category: product.category,
     })
   }

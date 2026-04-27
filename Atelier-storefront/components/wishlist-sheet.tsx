@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/use-cart"
 import { X, ShoppingBag } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Link from "next/link"
+import type { WishlistItem } from "@/hooks/use-wishlist"
 
 interface WishlistSheetProps {
   open: boolean
@@ -17,9 +18,9 @@ export function WishlistSheet({ open, onOpenChange }: WishlistSheetProps) {
   const { items, removeItem } = useWishlist()
   const { addItem: addToCart } = useCart()
 
-  const handleAddToCart = (item: any) => {
+  const handleAddToCart = (item: WishlistItem) => {
     addToCart({
-      id: item.id,
+      variantId: String(item.id),
       name: item.name,
       price: item.price,
       image: item.image,

@@ -3,8 +3,8 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-interface WishlistItem {
-  id: number
+export interface WishlistItem {
+  id: string | number
   name: string
   price: number
   image: string
@@ -14,8 +14,8 @@ interface WishlistItem {
 interface WishlistStore {
   items: WishlistItem[]
   addItem: (product: WishlistItem) => void
-  removeItem: (id: number) => void
-  isInWishlist: (id: number) => boolean
+  removeItem: (id: WishlistItem["id"]) => void
+  isInWishlist: (id: WishlistItem["id"]) => boolean
   clearWishlist: () => void
 }
 

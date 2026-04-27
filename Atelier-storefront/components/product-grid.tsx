@@ -35,7 +35,7 @@ export function ProductGrid({ products }: ProductGridProps) {
 
   const maxPrice = Math.max(...featuredProducts.map((p) => p.price))
   const availableCategories = Array.from(new Set(featuredProducts.map((p) => p.category)))
-  const availableSizes = Array.from(new Set(featuredProducts.flatMap((p) => p.sizes)))
+  const availableSizes = Array.from(new Set(featuredProducts.flatMap((p) => p.sizes ?? [])))
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
@@ -57,7 +57,7 @@ export function ProductGrid({ products }: ProductGridProps) {
 
     // Filter by size
     if (filters.sizes.length > 0) {
-      result = result.filter((p) => p.sizes.some((size) => filters.sizes.includes(size)))
+      result = result.filter((p) => p.sizes?.some((size) => filters.sizes.includes(size)) ?? false)
     }
 
     // Sort
@@ -69,7 +69,7 @@ export function ProductGrid({ products }: ProductGridProps) {
         result.sort((a, b) => b.price - a.price)
         break
       case "newest":
-        result.sort((a, b) => b.id - a.id)
+        result.sort((a, b) => Number(b.id) - Number(a.id))
         break
       default:
         // featured - keep original order
