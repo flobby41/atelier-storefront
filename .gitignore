@@ -22,6 +22,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# pnpm store (can be created when using pnpm in repo root)
+.pnpm-store/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
