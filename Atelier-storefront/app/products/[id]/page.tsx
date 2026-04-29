@@ -8,7 +8,7 @@ import { Header } from "@/components/header"
 import { shopifyFetch, isShopifyConfigured } from "@/lib/shopify"
 import { PRODUCT_BY_HANDLE_QUERY, PRODUCT_BY_ID_QUERY, PRODUCTS_QUERY } from "@/lib/queries"
 import { normalizeProduct, type ShopifyProduct } from "@/lib/shopify-types"
-import { getProductById, type Product as MockProduct } from "@/lib/products"
+import { allProducts, getProductById, type Product as MockProduct } from "@/lib/products"
 
 type NormalizedProduct = ReturnType<typeof normalizeProduct>
 
@@ -128,6 +128,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       const mockProduct = getProductById(numericId)
       if (mockProduct) {
         // Convert mock product to format compatible with ProductDetails
+        product = convertMockProductToShopifyFormat(mockProduct)
+      }
+    } else {
+      const mockProduct = allProducts.find(
+        (p) => p.name.toLowerCase().replace(/\s+/g, "-") === id
+      )
+      if (mockProduct) {
         product = convertMockProductToShopifyFormat(mockProduct)
       }
     }
