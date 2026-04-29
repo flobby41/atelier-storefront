@@ -3,8 +3,10 @@
 import { ProductCard } from "./product-card"
 import { shopifyFetchClient } from "@/lib/shopify"
 import { PRODUCTS_QUERY } from "@/lib/queries"
-import { normalizeProduct } from "@/lib/shopify-types"
+import { normalizeProduct, type ShopifyProduct } from "@/lib/shopify-types"
 import { useEffect, useState } from "react"
+
+type NormalizedProduct = ReturnType<typeof normalizeProduct>
 
 interface RelatedProductsProps {
   currentProductId: string
@@ -12,14 +14,14 @@ interface RelatedProductsProps {
 }
 
 export function RelatedProducts({ currentProductId, currentProductCategory }: RelatedProductsProps) {
-  const [relatedProducts, setRelatedProducts] = useState<any[]>([])
+  const [relatedProducts, setRelatedProducts] = useState<NormalizedProduct[]>([])
 
   useEffect(() => {
     async function fetchRelated() {
       const response = await shopifyFetchClient<{
         products: {
           edges: Array<{
-            node: any
+            node: ShopifyProduct
           }>
         }
       }>({

@@ -48,7 +48,7 @@ interface ShopifyResponse<T> {
     locations?: Array<{ line: number; column: number }>
     path?: string[]
   }>
-  extensions?: any
+  extensions?: unknown
 }
 
 /**

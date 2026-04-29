@@ -53,8 +53,8 @@ export default function AdminOrdersPage() {
     try {
       const response = await fetch('/api/admin/orders?first=50')
       if (response.ok) {
-        const data = await response.json()
-        setOrders(data.orders?.edges?.map((edge: any) => edge.node) || [])
+        const data: { orders?: { edges?: Array<{ node: Order }> } } = await response.json()
+        setOrders(data.orders?.edges?.map((edge) => edge.node) || [])
       } else {
         toast.error('Error loading orders')
       }

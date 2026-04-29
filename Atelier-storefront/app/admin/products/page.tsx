@@ -62,8 +62,8 @@ export default function AdminProductsPage() {
     try {
       const response = await fetch('/api/admin/products?first=50')
       if (response.ok) {
-        const data = await response.json()
-        setProducts(data.products?.edges?.map((edge: any) => edge.node) || [])
+        const data: { products?: { edges?: Array<{ node: Product }> } } = await response.json()
+        setProducts(data.products?.edges?.map((edge) => edge.node) || [])
       } else {
         toast.error('Error loading products')
       }

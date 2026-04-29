@@ -7,14 +7,16 @@ import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { shopifyFetch, isShopifyConfigured } from "@/lib/shopify"
 import { PRODUCT_BY_HANDLE_QUERY, PRODUCT_BY_ID_QUERY, PRODUCTS_QUERY } from "@/lib/queries"
-import { normalizeProduct } from "@/lib/shopify-types"
+import { normalizeProduct, type ShopifyProduct } from "@/lib/shopify-types"
 import { getProductById, type Product as MockProduct } from "@/lib/products"
+
+type NormalizedProduct = ReturnType<typeof normalizeProduct>
 
 /**
  * Convert a mock product to the format expected by ProductDetails component
  * Creates variants based on sizes for cart functionality
  */
-function convertMockProductToShopifyFormat(mockProduct: MockProduct) {
+function convertMockProductToShopifyFormat(mockProduct: MockProduct): NormalizedProduct {
   // Create variants for each size
   const variants = mockProduct.sizes.map((size, index) => ({
     id: `mock-${mockProduct.id}-${size}`,
@@ -49,6 +51,7 @@ function convertMockProductToShopifyFormat(mockProduct: MockProduct) {
     price: mockProduct.price,
     category: mockProduct.category,
     description: mockProduct.description,
+    descriptionHtml: mockProduct.description,
     images: mockProduct.images,
     sizes: mockProduct.sizes,
     details: mockProduct.details,
@@ -59,7 +62,7 @@ function convertMockProductToShopifyFormat(mockProduct: MockProduct) {
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
-  let product = null
+  let product: NormalizedProduct | null = null
 
   // Try to fetch from Shopify if configured
   if (isShopifyConfigured) {
@@ -70,7 +73,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       if (isShopifyGID) {
         // Try to fetch by ID directly
         const idResponse = await shopifyFetch<{
-          product: any
+          product: ShopifyProduct | null
         }>({
           query: PRODUCT_BY_ID_QUERY,
           variables: { id },
@@ -83,7 +86,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       } else {
         // Try to fetch by handle first (Shopify uses handles for URLs)
         const handleResponse = await shopifyFetch<{
-          product: any
+          product: ShopifyProduct | null
         }>({
           query: PRODUCT_BY_HANDLE_QUERY,
           variables: { handle: id },
@@ -100,7 +103,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         const productsResponse = await shopifyFetch<{
           products: {
             edges: Array<{
-              node: any
+              node: ShopifyProduct
             }>
           }
         }>({
@@ -110,7 +113,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         })
 
         const allProducts = productsResponse.data?.products.edges.map((edge) => normalizeProduct(edge.node)) || []
-        product = allProducts.find((p) => p.id === id || p.handle === id)
+        product = allProducts.find((p) => p.id === id || p.handle === id) ?? null
       }
     } catch (error) {
       console.error('Error fetching from Shopify:', error)

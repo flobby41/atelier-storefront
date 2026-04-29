@@ -35,8 +35,8 @@ export default function AdminCustomersPage() {
     try {
       const response = await fetch('/api/admin/customers?first=50')
       if (response.ok) {
-        const data = await response.json()
-        setCustomers(data.customers?.edges?.map((edge: any) => edge.node) || [])
+        const data: { customers?: { edges?: Array<{ node: Customer }> } } = await response.json()
+        setCustomers(data.customers?.edges?.map((edge) => edge.node) || [])
       } else {
         toast.error('Error loading customers')
       }
